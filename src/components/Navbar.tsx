@@ -1,10 +1,13 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, User, Calendar, Search } from 'lucide-react';
+import { Menu, X, Calendar, Search } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import UserMenu from './UserMenu';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -36,10 +39,14 @@ const Navbar = () => {
             <Link to="/appointments" className="text-beauty-dark hover:text-beauty-primary p-2 rounded-full transition-colors">
               <Calendar size={20} />
             </Link>
-            <Link to="/login" className="beauty-button bg-beauty-primary hover:bg-beauty-primary/90">
-              <User size={18} className="mr-2 inline" />
-              登入
-            </Link>
+            
+            {isAuthenticated ? (
+              <UserMenu />
+            ) : (
+              <Link to="/login" className="beauty-button bg-beauty-primary hover:bg-beauty-primary/90">
+                登入
+              </Link>
+            )}
           </div>
           
           {/* Mobile Menu Button */}
@@ -66,10 +73,14 @@ const Navbar = () => {
               <Link to="/appointments" className="text-beauty-dark p-2 rounded-full" onClick={toggleMenu}>
                 <Calendar size={20} />
               </Link>
-              <Link to="/login" className="beauty-button bg-beauty-primary hover:bg-beauty-primary/90 flex-1 text-center" onClick={toggleMenu}>
-                <User size={18} className="mr-2 inline" />
-                登入
-              </Link>
+              
+              {isAuthenticated ? (
+                <UserMenu />
+              ) : (
+                <Link to="/login" className="beauty-button bg-beauty-primary hover:bg-beauty-primary/90 flex-1 text-center" onClick={toggleMenu}>
+                  登入
+                </Link>
+              )}
             </div>
           </div>
         )}

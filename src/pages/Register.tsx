@@ -1,11 +1,16 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, User, Mail, Lock } from 'lucide-react';
 import Footer from '@/components/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Register = () => {
   const { toast } = useToast();
+  const { register, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -16,6 +21,13 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // If user is already authenticated, redirect to home page
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -63,16 +75,13 @@ const Register = () => {
     
     setIsLoading(true);
     
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      toast({
-        title: "註冊成功",
-        description: "歡迎加入 BeautifyHub！"
-      });
-      
-      window.location.href = '/';
-    }, 1500);
+    const success = await register(formData.name, formData.email, formData.password);
+    
+    if (success) {
+      navigate('/');
+    }
+    
+    setIsLoading(false);
   };
   
   return (

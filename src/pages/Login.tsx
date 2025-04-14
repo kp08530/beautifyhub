@@ -1,11 +1,17 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, User, Lock } from 'lucide-react';
 import Footer from '@/components/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
   const { toast } = useToast();
+  const { login, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -13,6 +19,13 @@ const Login = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // If user is already authenticated, redirect to home page
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -39,18 +52,15 @@ const Login = () => {
     
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      
-      toast({
-        title: "登入成功",
-        description: "歡迎回來！"
-      });
-      
-      // Redirect to home page
-      window.location.href = '/';
-    }, 1500);
+    const success = await login(formData.email, formData.password);
+    
+    if (success) {
+      // Get the redirect path from location state or default to home
+      const from = location.state?.from || '/';
+      navigate(from);
+    }
+    
+    setIsLoading(false);
   };
   
   return (
@@ -143,6 +153,12 @@ const Login = () => {
                   '登入'
                 )}
               </button>
+              
+              <div className="text-center mt-4 text-sm text-beauty-muted">
+                <p>測試帳號:</p>
+                <p className="mb-1">管理員: admin@beautifyhub.com / admin123</p>
+                <p>一般用戶: user@beautifyhub.com / user123</p>
+              </div>
             </form>
             
             <div className="text-center mt-6">
