@@ -1,455 +1,535 @@
-import { useState } from 'react';
+
+import React, { useState } from 'react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Users, Store, Calendar, Clipboard, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { 
-  Home, 
-  Calendar, 
-  Users, 
-  Settings, 
-  Menu, 
-  X,
-  Grid,
-  Clock,
-  LogOut,
-  Bell,
-  ChevronDown,
-  Scissors,
-  Camera,
-  DollarSign
-} from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 
 const Dashboard = () => {
-  const { toast } = useToast();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
-  
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-  
-  // Dummy data for demonstration
-  const upcomingAppointments = [
-    { id: 1, customer: '吳小姐', service: '基礎面部護理', time: '2023-07-15 14:00', status: 'confirmed' },
-    { id: 2, customer: '林先生', service: '時尚剪髮', time: '2023-07-15 16:30', status: 'confirmed' },
-    { id: 3, customer: '陳小姐', service: '美甲服務', time: '2023-07-16 10:00', status: 'pending' },
-  ];
-  
-  // Mock data for business stats
-  const businessStats = {
-    totalAppointments: 156,
-    completedAppointments: 142,
-    cancelledAppointments: 14,
-    totalCustomers: 87,
-    totalRevenue: 145600,
-    servicesOffered: 12
-  };
+  const [activeTab, setActiveTab] = useState("overview");
 
-  // Mock data for services
-  const services = [
-    { id: 1, name: '基礎面部護理', price: 1200, duration: 60, status: 'active' },
-    { id: 2, name: '深層潔淨護理', price: 1800, duration: 90, status: 'active' },
-    { id: 3, name: '時尚剪髮', price: 800, duration: 60, status: 'active' },
-    { id: 4, name: '染髮服務', price: 1500, duration: 120, status: 'active' },
-    { id: 5, name: '美甲服務', price: 600, duration: 45, status: 'inactive' },
+  // Sample data for charts
+  const userStats = [
+    { month: '一月', users: 150 },
+    { month: '二月', users: 230 },
+    { month: '三月', users: 280 },
+    { month: '四月', users: 310 },
+    { month: '五月', users: 410 },
+    { month: '六月', users: 520 },
   ];
-  
-  // Format appointment time
-  const formatAppointmentTime = (timeStr: string) => {
-    const date = new Date(timeStr);
-    return `${date.toLocaleDateString('zh-TW')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-  };
-  
-  // Handle appointment status change
-  const handleStatusChange = (id: number, newStatus: string) => {
-    toast({
-      title: "狀態已更新",
-      description: `預約 #${id} 的狀態已更改為 ${newStatus === 'confirmed' ? '已確認' : newStatus === 'completed' ? '已完成' : '已取消'}`
-    });
-  };
-  
+
+  const appointmentStats = [
+    { month: '一月', appointments: 80 },
+    { month: '二月', appointments: 120 },
+    { month: '三月', appointments: 190 },
+    { month: '四月', appointments: 220 },
+    { month: '五月', appointments: 280 },
+    { month: '六月', appointments: 350 },
+  ];
+
+  const pieData = [
+    { name: '美甲服務', value: 35 },
+    { name: '美容護膚', value: 25 },
+    { name: '美髮沙龍', value: 20 },
+    { name: '其他服務', value: 20 },
+  ];
+
+  const COLORS = ['#8B5CF6', '#D946EF', '#F97316', '#0EA5E9'];
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile Header */}
-      <header className="lg:hidden bg-white shadow-sm fixed top-0 left-0 right-0 z-40 h-16 flex items-center px-4">
-        <button onClick={toggleSidebar} className="p-2 mr-2">
-          {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-        <Link to="/" className="text-beauty-primary font-bold text-xl font-serif">BeautifyHub</Link>
-        <div className="ml-auto flex items-center space-x-2">
-          <button className="p-2 relative">
-            <Bell size={20} />
-            <span className="absolute top-1 right-1 bg-red-500 rounded-full w-2 h-2"></span>
-          </button>
-          <div className="w-8 h-8 rounded-full bg-beauty-primary text-white flex items-center justify-center">
-            <span>美</span>
+      <div className="py-4 bg-white shadow-sm border-b fixed top-0 w-full z-40">
+        <div className="container mx-auto px-4 flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center">
+              <span className="text-beauty-primary font-bold text-xl font-serif">BeautifyHub</span>
+            </Link>
+            <span className="text-gray-400 text-xl">|</span>
+            <h1 className="text-xl font-bold">管理者後台</h1>
           </div>
+          <Link to="/" className="flex items-center text-beauty-muted hover:text-beauty-dark transition-colors">
+            <ArrowLeft size={16} className="mr-1" />
+            返回首頁
+          </Link>
         </div>
-      </header>
-      
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-md transform transition-transform lg:translate-x-0 ${
-        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:relative lg:w-64 lg:min-h-screen`}>
-        <div className="h-full overflow-y-auto">
-          {/* Sidebar Header */}
-          <div className="h-16 flex items-center px-6 border-b">
-            <Link to="/" className="text-beauty-primary font-bold text-xl font-serif">BeautifyHub</Link>
-          </div>
-          
-          {/* Business Info */}
-          <div className="p-4 border-b">
-            <div className="flex items-center mb-2">
-              <div className="w-10 h-10 rounded-full bg-beauty-primary text-white flex items-center justify-center mr-3">
-                <span>美</span>
-              </div>
-              <div>
-                <div className="text-sm font-medium">美麗空間</div>
-                <div className="text-xs text-beauty-muted">美容沙龍</div>
-              </div>
+      </div>
+
+      <div className="flex h-screen pt-16">
+        {/* Sidebar */}
+        <div className="w-64 bg-white border-r h-full fixed left-0 top-16 overflow-y-auto">
+          <div className="p-4">
+            <div className="mb-6">
+              <h3 className="text-xs uppercase text-gray-400 font-semibold mb-3">主選單</h3>
+              <nav className="space-y-1">
+                <button
+                  onClick={() => setActiveTab("overview")}
+                  className={`w-full flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
+                    activeTab === "overview"
+                      ? "bg-beauty-primary/10 text-beauty-primary"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <Clipboard size={16} className="mr-2" />
+                  總覽
+                </button>
+                <button
+                  onClick={() => setActiveTab("users")}
+                  className={`w-full flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
+                    activeTab === "users"
+                      ? "bg-beauty-primary/10 text-beauty-primary"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <Users size={16} className="mr-2" />
+                  用戶管理
+                </button>
+                <button
+                  onClick={() => setActiveTab("businesses")}
+                  className={`w-full flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
+                    activeTab === "businesses"
+                      ? "bg-beauty-primary/10 text-beauty-primary"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <Store size={16} className="mr-2" />
+                  商家管理
+                </button>
+                <button
+                  onClick={() => setActiveTab("appointments")}
+                  className={`w-full flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
+                    activeTab === "appointments"
+                      ? "bg-beauty-primary/10 text-beauty-primary"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <Calendar size={16} className="mr-2" />
+                  預約管理
+                </button>
+              </nav>
             </div>
-            <div className="flex items-center text-xs text-beauty-muted">
-              <div className="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
-              <span>營業中</span>
+            
+            <div>
+              <h3 className="text-xs uppercase text-gray-400 font-semibold mb-3">系統設定</h3>
+              <nav className="space-y-1">
+                <a href="#" className="flex items-center px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-100 transition-colors">
+                  網站設定
+                </a>
+                <a href="#" className="flex items-center px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-100 transition-colors">
+                  權限管理
+                </a>
+                <a href="#" className="flex items-center px-3 py-2 text-sm rounded-md text-gray-700 hover:bg-gray-100 transition-colors">
+                  帳號設定
+                </a>
+              </nav>
             </div>
           </div>
-          
-          {/* Sidebar Navigation */}
-          <nav className="py-4">
-            <ul>
-              <li>
-                <button 
-                  onClick={() => setActiveTab('overview')}
-                  className={`flex items-center w-full px-6 py-3 hover:bg-gray-50 ${
-                    activeTab === 'overview' ? 'text-beauty-primary bg-beauty-primary/5 border-r-2 border-beauty-primary' : 'text-gray-700'
-                  }`}
-                >
-                  <Home size={18} className="mr-3" />
-                  <span>概覽</span>
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => setActiveTab('appointments')}
-                  className={`flex items-center w-full px-6 py-3 hover:bg-gray-50 ${
-                    activeTab === 'appointments' ? 'text-beauty-primary bg-beauty-primary/5 border-r-2 border-beauty-primary' : 'text-gray-700'
-                  }`}
-                >
-                  <Calendar size={18} className="mr-3" />
-                  <span>預約管理</span>
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => setActiveTab('services')}
-                  className={`flex items-center w-full px-6 py-3 hover:bg-gray-50 ${
-                    activeTab === 'services' ? 'text-beauty-primary bg-beauty-primary/5 border-r-2 border-beauty-primary' : 'text-gray-700'
-                  }`}
-                >
-                  <Scissors size={18} className="mr-3" />
-                  <span>服務管理</span>
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => setActiveTab('customers')}
-                  className={`flex items-center w-full px-6 py-3 hover:bg-gray-50 ${
-                    activeTab === 'customers' ? 'text-beauty-primary bg-beauty-primary/5 border-r-2 border-beauty-primary' : 'text-gray-700'
-                  }`}
-                >
-                  <Users size={18} className="mr-3" />
-                  <span>客戶管理</span>
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => setActiveTab('portfolio')}
-                  className={`flex items-center w-full px-6 py-3 hover:bg-gray-50 ${
-                    activeTab === 'portfolio' ? 'text-beauty-primary bg-beauty-primary/5 border-r-2 border-beauty-primary' : 'text-gray-700'
-                  }`}
-                >
-                  <Camera size={18} className="mr-3" />
-                  <span>作品集管理</span>
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => setActiveTab('settings')}
-                  className={`flex items-center w-full px-6 py-3 hover:bg-gray-50 ${
-                    activeTab === 'settings' ? 'text-beauty-primary bg-beauty-primary/5 border-r-2 border-beauty-primary' : 'text-gray-700'
-                  }`}
-                >
-                  <Settings size={18} className="mr-3" />
-                  <span>設定</span>
-                </button>
-              </li>
-            </ul>
-          </nav>
-          
-          {/* Logout Button */}
-          <div className="absolute bottom-0 w-full p-4 border-t">
-            <button className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-gray-50 rounded-lg">
-              <LogOut size={18} className="mr-3" />
-              <span>登出</span>
-            </button>
-          </div>
         </div>
-      </aside>
-      
-      {/* Main Content */}
-      <main className={`lg:ml-64 pt-16 lg:pt-0 min-h-screen`}>
-        {/* Page Header */}
-        <div className="bg-white shadow-sm border-b">
-          <div className="px-6 py-4">
-            <h1 className="text-xl font-bold">
-              {activeTab === 'overview' && '商家後台'}
-              {activeTab === 'appointments' && '預約管理'}
-              {activeTab === 'services' && '服務管理'}
-              {activeTab === 'customers' && '客戶管理'}
-              {activeTab === 'portfolio' && '作品集管理'}
-              {activeTab === 'settings' && '設定'}
-            </h1>
-          </div>
-        </div>
-        
-        {/* Page Content */}
-        <div className="p-6">
-          {/* Overview Tab */}
-          {activeTab === 'overview' && (
-            <div className="animate-fade-in">
-              {/* Business Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-beauty-muted text-sm">總預約數</p>
-                      <h3 className="text-3xl font-bold mt-1">{businessStats.totalAppointments}</h3>
-                    </div>
-                    <div className="bg-beauty-primary/10 p-3 rounded-lg">
-                      <Calendar className="text-beauty-primary" size={24} />
-                    </div>
-                  </div>
-                  <div className="mt-2 flex gap-2 text-xs">
-                    <span className="text-green-500 bg-green-50 px-2 py-1 rounded-full">
-                      完成: {businessStats.completedAppointments}
-                    </span>
-                    <span className="text-red-500 bg-red-50 px-2 py-1 rounded-full">
-                      取消: {businessStats.cancelledAppointments}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-beauty-muted text-sm">總客戶數</p>
-                      <h3 className="text-3xl font-bold mt-1">{businessStats.totalCustomers}</h3>
-                    </div>
-                    <div className="bg-beauty-secondary/10 p-3 rounded-lg">
-                      <Users className="text-beauty-secondary" size={24} />
-                    </div>
-                  </div>
-                  <div className="mt-2 text-xs text-green-500 flex items-center">
-                    <span>↑ 12% 較上個月</span>
-                  </div>
-                </div>
-                
-                <div className="bg-white rounded-xl shadow-sm p-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-beauty-muted text-sm">總收入</p>
-                      <h3 className="text-3xl font-bold mt-1">NT${businessStats.totalRevenue.toLocaleString()}</h3>
-                    </div>
-                    <div className="bg-beauty-accent/10 p-3 rounded-lg">
-                      <DollarSign className="text-beauty-accent" size={24} />
-                    </div>
-                  </div>
-                  <div className="mt-2 text-xs text-green-500 flex items-center">
-                    <span>↑ 8% 較上個月</span>
-                  </div>
-                </div>
-              </div>
+
+        {/* Main Content */}
+        <div className="pl-64 w-full">
+          <div className="p-6">
+            <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="hidden">
+                <TabsTrigger value="overview">總覽</TabsTrigger>
+                <TabsTrigger value="users">用戶管理</TabsTrigger>
+                <TabsTrigger value="businesses">商家管理</TabsTrigger>
+                <TabsTrigger value="appointments">預約管理</TabsTrigger>
+              </TabsList>
               
-              {/* Upcoming Appointments */}
-              <div className="bg-white rounded-xl shadow-sm mb-8">
-                <div className="p-6 border-b">
-                  <h2 className="text-lg font-bold">今日預約</h2>
+              <TabsContent value="overview" className="space-y-6">
+                <h2 className="text-2xl font-bold mb-6">儀表板總覽</h2>
+                
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">總用戶數</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">1,892</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        較上月 <span className="text-green-500">+11.2%</span>
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">商家數量</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">48</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        較上月 <span className="text-green-500">+4.3%</span>
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">本月預約數</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">350</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        較上月 <span className="text-green-500">+25.0%</span>
+                      </p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium text-muted-foreground">本月營業額</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">$56,890</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        較上月 <span className="text-green-500">+18.7%</span>
+                      </p>
+                    </CardContent>
+                  </Card>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 text-left">
-                      <tr>
-                        <th className="px-6 py-3 text-xs font-medium text-beauty-muted uppercase tracking-wider">客戶</th>
-                        <th className="px-6 py-3 text-xs font-medium text-beauty-muted uppercase tracking-wider">服務項目</th>
-                        <th className="px-6 py-3 text-xs font-medium text-beauty-muted uppercase tracking-wider">時間</th>
-                        <th className="px-6 py-3 text-xs font-medium text-beauty-muted uppercase tracking-wider">狀態</th>
-                        <th className="px-6 py-3 text-xs font-medium text-beauty-muted uppercase tracking-wider">操作</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {upcomingAppointments.map((appointment) => (
-                        <tr key={appointment.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-sm">{appointment.customer}</td>
-                          <td className="px-6 py-4 text-sm">{appointment.service}</td>
-                          <td className="px-6 py-4 text-sm">{formatAppointmentTime(appointment.time)}</td>
-                          <td className="px-6 py-4 text-sm">
-                            <span className={`inline-block px-2 py-1 text-xs rounded-full ${
-                              appointment.status === 'confirmed' 
-                                ? 'bg-green-100 text-green-700' 
-                                : appointment.status === 'completed'
-                                ? 'bg-blue-100 text-blue-700'
-                                : appointment.status === 'cancelled'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-yellow-100 text-yellow-700'
-                            }`}>
-                              {appointment.status === 'confirmed' && '已確認'}
-                              {appointment.status === 'pending' && '待確認'}
-                              {appointment.status === 'completed' && '已完成'}
-                              {appointment.status === 'cancelled' && '已取消'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-sm">
-                            <div className="relative inline-block text-left">
-                              <button className="inline-flex items-center justify-center px-3 py-1 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-beauty-dark hover:bg-gray-50">
-                                操作
-                                <ChevronDown size={14} className="ml-1" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {upcomingAppointments.length === 0 && (
-                        <tr>
-                          <td colSpan={5} className="px-6 py-8 text-center text-beauty-muted">
-                            今日沒有預約
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                
+                {/* Charts */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>用戶增長趨勢</CardTitle>
+                      <CardDescription>過去六個月的用戶增長數據</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={userStats}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="month" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Bar dataKey="users" fill="#8B5CF6" name="用戶數量" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>預約數據分析</CardTitle>
+                      <CardDescription>過去六個月的預約數據</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={appointmentStats}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="month" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Bar dataKey="appointments" fill="#D946EF" name="預約數量" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>服務類型分布</CardTitle>
+                      <CardDescription>各類服務的預約佔比</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={pieData}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={false}
+                              outerRadius={80}
+                              fill="#8884d8"
+                              dataKey="value"
+                              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                            >
+                              {pieData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>系統公告</CardTitle>
+                      <CardDescription>最新系統公告與更新資訊</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="border-l-4 border-beauty-primary pl-4 py-2">
+                          <p className="font-medium">系統更新通知</p>
+                          <p className="text-sm text-muted-foreground mt-1">預約系統功能已全面更新，支援多時段預約。</p>
+                          <p className="text-xs text-muted-foreground mt-2">2025-04-10</p>
+                        </div>
+                        
+                        <div className="border-l-4 border-yellow-500 pl-4 py-2">
+                          <p className="font-medium">新功能預告</p>
+                          <p className="text-sm text-muted-foreground mt-1">行動支付功能即將上線，敬請期待。</p>
+                          <p className="text-xs text-muted-foreground mt-2">2025-04-05</p>
+                        </div>
+                        
+                        <div className="border-l-4 border-green-500 pl-4 py-2">
+                          <p className="font-medium">商家入駐優惠</p>
+                          <p className="text-sm text-muted-foreground mt-1">新商家入駐享首月免服務費優惠，截止日期 2025-05-15。</p>
+                          <p className="text-xs text-muted-foreground mt-2">2025-04-01</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
               
-              {/* Quick Access */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col items-center text-center hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="bg-beauty-primary/10 p-4 rounded-full">
-                    <Calendar className="text-beauty-primary" size={24} />
-                  </div>
-                  <h3 className="mt-3 font-medium">管理預約</h3>
-                  <p className="text-sm text-beauty-muted mt-1">查看和管理所有預約</p>
-                </div>
-                
-                <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col items-center text-center hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="bg-beauty-primary/10 p-4 rounded-full">
-                    <Scissors className="text-beauty-primary" size={24} />
-                  </div>
-                  <h3 className="mt-3 font-medium">管理服務</h3>
-                  <p className="text-sm text-beauty-muted mt-1">更新服務項目和價格</p>
-                </div>
-                
-                <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col items-center text-center hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="bg-beauty-primary/10 p-4 rounded-full">
-                    <Camera className="text-beauty-primary" size={24} />
-                  </div>
-                  <h3 className="mt-3 font-medium">管理作品集</h3>
-                  <p className="text-sm text-beauty-muted mt-1">上傳和管理作品照片</p>
-                </div>
-                
-                <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col items-center text-center hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="bg-beauty-primary/10 p-4 rounded-full">
-                    <Settings className="text-beauty-primary" size={24} />
-                  </div>
-                  <h3 className="mt-3 font-medium">商家設定</h3>
-                  <p className="text-sm text-beauty-muted mt-1">更新店家資訊和設定</p>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* Services Tab */}
-          {activeTab === 'services' && (
-            <div className="animate-fade-in">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-bold">服務項目</h2>
-                <button className="beauty-button bg-beauty-primary hover:bg-beauty-primary/90">
-                  新增服務
-                </button>
-              </div>
+              <TabsContent value="users">
+                <h2 className="text-2xl font-bold mb-6">用戶管理</h2>
+                <Card>
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <CardTitle>用戶列表</CardTitle>
+                      <Button size="sm">新增用戶</Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-3 px-4 font-medium text-sm">ID</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm">用戶名稱</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm">Email</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm">註冊日期</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm">角色</th>
+                            <th className="text-right py-3 px-4 font-medium text-sm">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">1</td>
+                            <td className="py-3 px-4">陳小明</td>
+                            <td className="py-3 px-4">chen123@example.com</td>
+                            <td className="py-3 px-4">2025-02-15</td>
+                            <td className="py-3 px-4"><span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">用戶</span></td>
+                            <td className="py-3 px-4 text-right">
+                              <Button variant="ghost" size="sm">編輯</Button>
+                              <Button variant="ghost" size="sm" className="text-red-500">刪除</Button>
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">2</td>
+                            <td className="py-3 px-4">李美麗</td>
+                            <td className="py-3 px-4">beauty@example.com</td>
+                            <td className="py-3 px-4">2025-03-05</td>
+                            <td className="py-3 px-4"><span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">商家</span></td>
+                            <td className="py-3 px-4 text-right">
+                              <Button variant="ghost" size="sm">編輯</Button>
+                              <Button variant="ghost" size="sm" className="text-red-500">刪除</Button>
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">3</td>
+                            <td className="py-3 px-4">王大明</td>
+                            <td className="py-3 px-4">wang@example.com</td>
+                            <td className="py-3 px-4">2025-03-10</td>
+                            <td className="py-3 px-4"><span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">用戶</span></td>
+                            <td className="py-3 px-4 text-right">
+                              <Button variant="ghost" size="sm">編輯</Button>
+                              <Button variant="ghost" size="sm" className="text-red-500">刪除</Button>
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">4</td>
+                            <td className="py-3 px-4">林曉華</td>
+                            <td className="py-3 px-4">admin@example.com</td>
+                            <td className="py-3 px-4">2025-01-20</td>
+                            <td className="py-3 px-4"><span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">管理員</span></td>
+                            <td className="py-3 px-4 text-right">
+                              <Button variant="ghost" size="sm">編輯</Button>
+                              <Button variant="ghost" size="sm" className="text-red-500">刪除</Button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
               
-              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 text-left">
-                      <tr>
-                        <th className="px-6 py-3 text-xs font-medium text-beauty-muted uppercase tracking-wider">服務名稱</th>
-                        <th className="px-6 py-3 text-xs font-medium text-beauty-muted uppercase tracking-wider">價格</th>
-                        <th className="px-6 py-3 text-xs font-medium text-beauty-muted uppercase tracking-wider">時間</th>
-                        <th className="px-6 py-3 text-xs font-medium text-beauty-muted uppercase tracking-wider">狀態</th>
-                        <th className="px-6 py-3 text-xs font-medium text-beauty-muted uppercase tracking-wider">操作</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {services.map((service) => (
-                        <tr key={service.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-sm font-medium">{service.name}</td>
-                          <td className="px-6 py-4 text-sm">NT${service.price.toLocaleString()}</td>
-                          <td className="px-6 py-4 text-sm">{service.duration} 分鐘</td>
-                          <td className="px-6 py-4 text-sm">
-                            <span className={`inline-block px-2 py-1 text-xs rounded-full ${
-                              service.status === 'active'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-gray-100 text-gray-700'
-                            }`}>
-                              {service.status === 'active' ? '啟用中' : '已停用'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-sm">
-                            <div className="flex space-x-2">
-                              <button className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50">
-                                編輯
-                              </button>
-                              <button className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 text-red-500">
-                                刪除
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* Other tabs would be implemented here */}
-          {activeTab !== 'overview' && activeTab !== 'services' && (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <div className="max-w-md mx-auto">
-                <Grid className="mx-auto text-beauty-muted h-16 w-16 mb-4" />
-                <h2 className="text-xl font-bold mb-2">此功能正在開發中</h2>
-                <p className="text-beauty-muted mb-4">
-                  我們正在努力完善這項功能，很快就會推出。
-                </p>
-                <button 
-                  onClick={() => setActiveTab('overview')}
-                  className="beauty-button bg-beauty-primary hover:bg-beauty-primary/90"
-                >
-                  返回概覽
-                </button>
-              </div>
-            </div>
-          )}
+              <TabsContent value="businesses">
+                <h2 className="text-2xl font-bold mb-6">商家管理</h2>
+                <Card>
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <CardTitle>商家列表</CardTitle>
+                      <Button size="sm">新增商家</Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-3 px-4 font-medium text-sm">ID</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm">商家名稱</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm">分類</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm">電話</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm">狀態</th>
+                            <th className="text-right py-3 px-4 font-medium text-sm">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">1</td>
+                            <td className="py-3 px-4">美綺美髮沙龍</td>
+                            <td className="py-3 px-4">美髮沙龍</td>
+                            <td className="py-3 px-4">02-2345-6789</td>
+                            <td className="py-3 px-4"><span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">營業中</span></td>
+                            <td className="py-3 px-4 text-right">
+                              <Button variant="ghost" size="sm">編輯</Button>
+                              <Button variant="ghost" size="sm" className="text-red-500">停用</Button>
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">2</td>
+                            <td className="py-3 px-4">晶晶美甲工作室</td>
+                            <td className="py-3 px-4">美甲服務</td>
+                            <td className="py-3 px-4">02-3456-7890</td>
+                            <td className="py-3 px-4"><span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">營業中</span></td>
+                            <td className="py-3 px-4 text-right">
+                              <Button variant="ghost" size="sm">編輯</Button>
+                              <Button variant="ghost" size="sm" className="text-red-500">停用</Button>
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">3</td>
+                            <td className="py-3 px-4">自然美SPA中心</td>
+                            <td className="py-3 px-4">美容護膚</td>
+                            <td className="py-3 px-4">02-4567-8901</td>
+                            <td className="py-3 px-4"><span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">審核中</span></td>
+                            <td className="py-3 px-4 text-right">
+                              <Button variant="ghost" size="sm">編輯</Button>
+                              <Button variant="ghost" size="sm" className="text-green-500">核准</Button>
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">4</td>
+                            <td className="py-3 px-4">光采美妍中心</td>
+                            <td className="py-3 px-4">面部護理</td>
+                            <td className="py-3 px-4">02-5678-9012</td>
+                            <td className="py-3 px-4"><span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">已停用</span></td>
+                            <td className="py-3 px-4 text-right">
+                              <Button variant="ghost" size="sm">編輯</Button>
+                              <Button variant="ghost" size="sm" className="text-green-500">啟用</Button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="appointments">
+                <h2 className="text-2xl font-bold mb-6">預約管理</h2>
+                <Card>
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <CardTitle>預約記錄</CardTitle>
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm">匯出資料</Button>
+                        <Button size="sm">新增預約</Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-3 px-4 font-medium text-sm">ID</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm">用戶</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm">商家</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm">服務項目</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm">預約時間</th>
+                            <th className="text-left py-3 px-4 font-medium text-sm">狀態</th>
+                            <th className="text-right py-3 px-4 font-medium text-sm">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">1</td>
+                            <td className="py-3 px-4">陳小明</td>
+                            <td className="py-3 px-4">美綺美髮沙龍</td>
+                            <td className="py-3 px-4">精緻剪髮造型</td>
+                            <td className="py-3 px-4">2025-04-15 14:30</td>
+                            <td className="py-3 px-4"><span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">已確認</span></td>
+                            <td className="py-3 px-4 text-right">
+                              <Button variant="ghost" size="sm">詳情</Button>
+                              <Button variant="ghost" size="sm" className="text-red-500">取消</Button>
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">2</td>
+                            <td className="py-3 px-4">王大明</td>
+                            <td className="py-3 px-4">晶晶美甲工作室</td>
+                            <td className="py-3 px-4">日式美甲</td>
+                            <td className="py-3 px-4">2025-04-16 10:00</td>
+                            <td className="py-3 px-4"><span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">已完成</span></td>
+                            <td className="py-3 px-4 text-right">
+                              <Button variant="ghost" size="sm">詳情</Button>
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">3</td>
+                            <td className="py-3 px-4">李美麗</td>
+                            <td className="py-3 px-4">自然美SPA中心</td>
+                            <td className="py-3 px-4">全身按摩</td>
+                            <td className="py-3 px-4">2025-04-17 15:00</td>
+                            <td className="py-3 px-4"><span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">待確認</span></td>
+                            <td className="py-3 px-4 text-right">
+                              <Button variant="ghost" size="sm">詳情</Button>
+                              <Button variant="ghost" size="sm" className="text-blue-500">確認</Button>
+                            </td>
+                          </tr>
+                          <tr className="border-b">
+                            <td className="py-3 px-4">4</td>
+                            <td className="py-3 px-4">林曉華</td>
+                            <td className="py-3 px-4">光采美妍中心</td>
+                            <td className="py-3 px-4">保濕面膜護理</td>
+                            <td className="py-3 px-4">2025-04-15 11:30</td>
+                            <td className="py-3 px-4"><span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded">已取消</span></td>
+                            <td className="py-3 px-4 text-right">
+                              <Button variant="ghost" size="sm">詳情</Button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
-      </main>
-      
-      {/* Overlay for mobile sidebar */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-20 lg:hidden" 
-          onClick={toggleSidebar}
-        ></div>
-      )}
+      </div>
     </div>
   );
 };

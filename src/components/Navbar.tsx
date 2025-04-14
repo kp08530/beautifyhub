@@ -1,16 +1,32 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, Calendar, Search } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import UserMenu from './UserMenu';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const toggleSearch = () => {
+    setIsSearchOpen(!isSearchOpen);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      setIsSearchOpen(false);
+      setSearchQuery('');
+    }
   };
 
   return (
@@ -33,9 +49,12 @@ const Navbar = () => {
           
           {/* User Actions - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/search" className="text-beauty-dark hover:text-beauty-primary p-2 rounded-full transition-colors">
+            <button 
+              onClick={toggleSearch} 
+              className="text-beauty-dark hover:text-beauty-primary p-2 rounded-full transition-colors"
+            >
               <Search size={20} />
-            </Link>
+            </button>
             <Link to="/appointments" className="text-beauty-dark hover:text-beauty-primary p-2 rounded-full transition-colors">
               <Calendar size={20} />
             </Link>
@@ -50,12 +69,40 @@ const Navbar = () => {
           </div>
           
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center">
+            <button 
+              onClick={toggleSearch} 
+              className="p-2 text-beauty-dark mr-2"
+            >
+              <Search size={20} />
+            </button>
             <button onClick={toggleMenu} className="p-2 text-beauty-dark">
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
+        
+        {/* Search Bar */}
+        {isSearchOpen && (
+          <div className="py-3 border-t border-gray-100 animate-fade-in">
+            <form onSubmit={handleSearch} className="flex">
+              <input
+                type="text"
+                placeholder="搜尋美容店家或服務..."
+                className="flex-1 beauty-input pl-4"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+              />
+              <button
+                type="submit"
+                className="beauty-button bg-beauty-primary ml-2"
+              >
+                搜尋
+              </button>
+            </form>
+          </div>
+        )}
         
         {/* Mobile Menu */}
         {isMenuOpen && (
@@ -67,9 +114,6 @@ const Navbar = () => {
               <Link to="/portfolios" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>作品集</Link>
             </nav>
             <div className="flex items-center space-x-4 px-4 pb-4">
-              <Link to="/search" className="text-beauty-dark p-2 rounded-full" onClick={toggleMenu}>
-                <Search size={20} />
-              </Link>
               <Link to="/appointments" className="text-beauty-dark p-2 rounded-full" onClick={toggleMenu}>
                 <Calendar size={20} />
               </Link>

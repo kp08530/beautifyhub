@@ -22,6 +22,7 @@ import BusinessProfile from "./pages/BusinessProfile";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
+import Search from "./pages/Search";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/business-signup" element={<><Navbar /><BusinessSignup /></>} />
             <Route path="/terms" element={<><Navbar /><Terms /></>} />
             <Route path="/privacy" element={<><Navbar /><Privacy /></>} />
+            <Route path="/search" element={<><Navbar /><Search /></>} />
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Navbar />

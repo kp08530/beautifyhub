@@ -1,8 +1,23 @@
 
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { SearchIcon } from 'lucide-react';
 
 const Hero = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  const handleQuickSearch = (term: string) => {
+    navigate(`/search?q=${encodeURIComponent(term)}`);
+  };
+
   return (
     <div className="relative bg-gradient-to-r from-beauty-primary/10 to-beauty-secondary/10 py-24 md:py-32">
       <div className="container mx-auto px-4">
@@ -24,27 +39,44 @@ const Hero = () => {
           </div>
           
           <div className="mt-12 relative max-w-2xl mx-auto animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <input 
                 type="text" 
                 placeholder="搜尋美容店家或服務..." 
                 className="w-full py-4 px-6 pr-12 rounded-full shadow-lg border-0 focus:ring-2 focus:ring-beauty-primary/30 focus:outline-none text-beauty-dark"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                <SearchIcon className="text-beauty-primary h-5 w-5" />
-              </div>
-            </div>
+              <button 
+                type="submit"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-beauty-primary hover:text-beauty-primary/80 transition-colors"
+              >
+                <SearchIcon className="h-5 w-5" />
+              </button>
+            </form>
             <div className="mt-2 flex flex-wrap justify-center gap-2 text-sm text-beauty-dark/70">
-              <span className="bg-white/80 px-3 py-1 rounded-full hover:bg-beauty-primary hover:text-white transition-colors cursor-pointer">
+              <span 
+                className="bg-white/80 px-3 py-1 rounded-full hover:bg-beauty-primary hover:text-white transition-colors cursor-pointer"
+                onClick={() => handleQuickSearch("美容護膚")}
+              >
                 美容護膚
               </span>
-              <span className="bg-white/80 px-3 py-1 rounded-full hover:bg-beauty-primary hover:text-white transition-colors cursor-pointer">
+              <span 
+                className="bg-white/80 px-3 py-1 rounded-full hover:bg-beauty-primary hover:text-white transition-colors cursor-pointer"
+                onClick={() => handleQuickSearch("美髮沙龍")}
+              >
                 美髮沙龍
               </span>
-              <span className="bg-white/80 px-3 py-1 rounded-full hover:bg-beauty-primary hover:text-white transition-colors cursor-pointer">
+              <span 
+                className="bg-white/80 px-3 py-1 rounded-full hover:bg-beauty-primary hover:text-white transition-colors cursor-pointer"
+                onClick={() => handleQuickSearch("美甲服務")}
+              >
                 美甲服務
               </span>
-              <span className="bg-white/80 px-3 py-1 rounded-full hover:bg-beauty-primary hover:text-white transition-colors cursor-pointer">
+              <span 
+                className="bg-white/80 px-3 py-1 rounded-full hover:bg-beauty-primary hover:text-white transition-colors cursor-pointer"
+                onClick={() => handleQuickSearch("面部護理")}
+              >
                 面部護理
               </span>
             </div>
