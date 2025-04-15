@@ -19,6 +19,6 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  avatar?: string;
+  avatar: string; // Added avatar property as a required field
   role?: string;
 }
