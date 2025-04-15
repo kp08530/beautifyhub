@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { X, User, Send, MessageSquare, Heart, Trash2 } from 'lucide-react';
+import { X, User as UserIcon, Send, MessageSquare, Heart, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from '@/contexts/AuthContext';
@@ -206,7 +207,7 @@ const CommentModal = ({ isOpen, onClose, postId, postTitle, postImage, authorNam
                             </span>
                           )}
                         </span>
-                        {comment.authorId === (user?.id || 'current-user') && (
+                        {comment.authorId === (user as UserType)?.id && (
                           <button 
                             onClick={() => handleDeleteComment(comment.id)}
                             className="text-beauty-muted hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -242,15 +243,15 @@ const CommentModal = ({ isOpen, onClose, postId, postTitle, postImage, authorNam
           
           {isAuthenticated && (
             <div className="p-4 border-t bg-white">
-              {user?.avatar ? (
+              {(user as UserType)?.avatar ? (
                 <img 
-                  src={user.avatar} 
-                  alt={user.name} 
+                  src={(user as UserType).avatar} 
+                  alt={(user as UserType).name} 
                   className="w-8 h-8 rounded-full flex-shrink-0"
                 />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-beauty-primary/20 flex items-center justify-center flex-shrink-0">
-                  <User size={16} className="text-beauty-primary" />
+                  <UserIcon size={16} className="text-beauty-primary" />
                 </div>
               )}
               <div className="flex items-start space-x-3">
