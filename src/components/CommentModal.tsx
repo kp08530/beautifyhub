@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { X, User, Send, MessageSquare, Heart, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
+import { User as UserType } from '@/types/portfolio';
 
 export interface Comment {
   id: string;
@@ -34,10 +34,8 @@ const CommentModal = ({ isOpen, onClose, postId, postTitle, postImage, authorNam
   const { toast } = useToast();
   
   useEffect(() => {
-    // Mock fetching comments
     if (isOpen) {
       setTimeout(() => {
-        // Generate random comments for demo
         const demoComments: Comment[] = Array(Math.floor(Math.random() * 5) + 1)
           .fill(null)
           .map((_, index) => ({
@@ -81,12 +79,13 @@ const CommentModal = ({ isOpen, onClose, postId, postTitle, postImage, authorNam
       return;
     }
     
-    // Add new comment
+    const currentUser = user as UserType;
+    
     const newCommentObj: Comment = {
       id: `comment-new-${Date.now()}`,
-      authorId: user?.id || 'current-user',
-      authorName: user?.name || '當前用戶',
-      authorAvatar: user?.avatar || `https://i.pravatar.cc/150?u=current-user`,
+      authorId: currentUser.id,
+      authorName: currentUser.name,
+      authorAvatar: currentUser.avatar,
       text: newComment,
       likes: 0,
       isLiked: false,
@@ -133,7 +132,6 @@ const CommentModal = ({ isOpen, onClose, postId, postTitle, postImage, authorNam
     });
   };
   
-  // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -165,7 +163,6 @@ const CommentModal = ({ isOpen, onClose, postId, postTitle, postImage, authorNam
           <X size={20} />
         </button>
         
-        {/* Post Image - Hidden on mobile */}
         <div className="hidden md:block md:w-1/2 bg-gray-100">
           <img 
             src={postImage} 
@@ -174,9 +171,7 @@ const CommentModal = ({ isOpen, onClose, postId, postTitle, postImage, authorNam
           />
         </div>
         
-        {/* Comments Section */}
         <div className="w-full md:w-1/2 flex flex-col h-[90vh] md:h-auto">
-          {/* Header */}
           <div className="p-4 border-b">
             <div className="flex items-center">
               <MessageSquare size={20} className="text-beauty-primary mr-2" />
@@ -187,7 +182,6 @@ const CommentModal = ({ isOpen, onClose, postId, postTitle, postImage, authorNam
             <p className="text-beauty-muted text-sm mt-1">由 {authorName} 發佈的作品</p>
           </div>
           
-          {/* Comments List */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {isLoading ? (
               <div className="flex justify-center items-center h-full">
@@ -246,21 +240,20 @@ const CommentModal = ({ isOpen, onClose, postId, postTitle, postImage, authorNam
             )}
           </div>
           
-          {/* Comment Input */}
-          <div className="p-4 border-t bg-white">
-            {isAuthenticated ? (
+          {isAuthenticated && (
+            <div className="p-4 border-t bg-white">
+              {user?.avatar ? (
+                <img 
+                  src={user.avatar} 
+                  alt={user.name} 
+                  className="w-8 h-8 rounded-full flex-shrink-0"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-beauty-primary/20 flex items-center justify-center flex-shrink-0">
+                  <User size={16} className="text-beauty-primary" />
+                </div>
+              )}
               <div className="flex items-start space-x-3">
-                {user?.avatar ? (
-                  <img 
-                    src={user.avatar} 
-                    alt={user.name} 
-                    className="w-8 h-8 rounded-full flex-shrink-0"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-beauty-primary/20 flex items-center justify-center flex-shrink-0">
-                    <User size={16} className="text-beauty-primary" />
-                  </div>
-                )}
                 <div className="flex-1">
                   <Textarea
                     value={newComment}
@@ -282,18 +275,8 @@ const CommentModal = ({ isOpen, onClose, postId, postTitle, postImage, authorNam
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-2">
-                <p className="text-beauty-muted mb-2">登入後才能發表評論</p>
-                <Button 
-                  className="bg-beauty-primary hover:bg-beauty-primary/90"
-                  size="sm"
-                >
-                  登入帳號
-                </Button>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
