@@ -56,13 +56,16 @@ const Footer = () => {
                 <Link to="/business-signup" className="text-gray-300 hover:text-white transition-colors">商家註冊</Link>
               </li>
               <li>
-                <Link to="/dashboard" className="text-gray-300 hover:text-white transition-colors">商家後台</Link>
+                <Link to="/business-profile" className="text-gray-300 hover:text-white transition-colors">商家後台</Link>
               </li>
               <li>
                 <Link to="/pricing" className="text-gray-300 hover:text-white transition-colors">服務價格</Link>
               </li>
               <li>
                 <Link to="/support" className="text-gray-300 hover:text-white transition-colors">商家支援</Link>
+              </li>
+              <li>
+                <Link to="/dashboard" className="text-gray-300 hover:text-white transition-colors">管理後台</Link>
               </li>
             </ul>
           </div>

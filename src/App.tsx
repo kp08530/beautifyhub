@@ -23,6 +23,9 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 import Search from "./pages/Search";
+import MyCollections from "./pages/MyCollections";
+import Pricing from "./pages/Pricing";
+import Support from "./pages/Support";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +49,14 @@ const App = () => {
               <Route path="/terms" element={<><Navbar /><Terms /></>} />
               <Route path="/privacy" element={<><Navbar /><Privacy /></>} />
               <Route path="/search" element={<><Navbar /><Search /></>} />
+              <Route path="/pricing" element={<><Navbar /><Pricing /></>} />
+              <Route path="/support" element={<><Navbar /><Support /></>} />
+              <Route path="/my-collections" element={
+                <ProtectedRoute>
+                  <Navbar />
+                  <MyCollections />
+                </ProtectedRoute>
+              } />
               <Route path="/profile" element={
                 <ProtectedRoute>
                   <Navbar />

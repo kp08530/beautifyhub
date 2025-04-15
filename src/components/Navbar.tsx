@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Calendar, Search } from 'lucide-react';
+import { Menu, X, Calendar, Search, Bookmark } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import UserMenu from './UserMenu';
 
@@ -45,6 +45,8 @@ const Navbar = () => {
             <Link to="/businesses" className="text-beauty-dark hover:text-beauty-primary transition-colors">美容店家</Link>
             <Link to="/services" className="text-beauty-dark hover:text-beauty-primary transition-colors">服務項目</Link>
             <Link to="/portfolios" className="text-beauty-dark hover:text-beauty-primary transition-colors">作品集</Link>
+            <Link to="/pricing" className="text-beauty-dark hover:text-beauty-primary transition-colors">服務價格</Link>
+            <Link to="/support" className="text-beauty-dark hover:text-beauty-primary transition-colors">商家支援</Link>
           </nav>
           
           {/* User Actions - Desktop */}
@@ -55,9 +57,16 @@ const Navbar = () => {
             >
               <Search size={20} />
             </button>
-            <Link to="/appointments" className="text-beauty-dark hover:text-beauty-primary p-2 rounded-full transition-colors">
-              <Calendar size={20} />
-            </Link>
+            {isAuthenticated && (
+              <>
+                <Link to="/appointments" className="text-beauty-dark hover:text-beauty-primary p-2 rounded-full transition-colors">
+                  <Calendar size={20} />
+                </Link>
+                <Link to="/my-collections" className="text-beauty-dark hover:text-beauty-primary p-2 rounded-full transition-colors">
+                  <Bookmark size={20} />
+                </Link>
+              </>
+            )}
             
             {isAuthenticated ? (
               <UserMenu />
@@ -112,12 +121,16 @@ const Navbar = () => {
               <Link to="/businesses" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>美容店家</Link>
               <Link to="/services" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>服務項目</Link>
               <Link to="/portfolios" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>作品集</Link>
+              <Link to="/pricing" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>服務價格</Link>
+              <Link to="/support" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>商家支援</Link>
+              {isAuthenticated && (
+                <>
+                  <Link to="/appointments" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>我的預約</Link>
+                  <Link to="/my-collections" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>我的集錦</Link>
+                </>
+              )}
             </nav>
             <div className="flex items-center space-x-4 px-4 pb-4">
-              <Link to="/appointments" className="text-beauty-dark p-2 rounded-full" onClick={toggleMenu}>
-                <Calendar size={20} />
-              </Link>
-              
               {isAuthenticated ? (
                 <UserMenu />
               ) : (

@@ -1,10 +1,10 @@
 
 import { useState, useEffect } from 'react';
 import { portfolioItems } from '@/data/services';
-import { Search, Heart, MessageCircle, BookmarkPlus, PlusCircle, X, Upload } from 'lucide-react';
+import { Search, Heart, MessageCircle, BookmarkPlus, PlusCircle, X, Upload, Info, Bookmark, Award, Sparkles } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,6 +16,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
+import CommentModal from '@/components/CommentModal';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Extended portfolio item type
 interface ExtendedPortfolioItem {
@@ -44,8 +51,11 @@ const Portfolios = () => {
   const [newPostTags, setNewPostTags] = useState('');
   const [newPostImage, setNewPostImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedPostForComments, setSelectedPostForComments] = useState<ExtendedPortfolioItem | null>(null);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   // Process portfolio items on component mount
   useEffect(() => {
@@ -168,15 +178,38 @@ const Portfolios = () => {
   
   // Handle bookmark action
   const handleBookmark = (id: string) => {
+    if (!isAuthenticated) {
+      toast({
+        title: "請先登入",
+        description: "您需要登入才能收藏作品",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setExtendedItems(prev => prev.map(item => {
       if (item.id === id) {
+        const newStatus = !item.isBookmarked;
+        
+        // Show toast based on action
+        toast({
+          title: newStatus ? "已加入收藏" : "已取消收藏",
+          description: newStatus ? "作品已加入您的集錦" : "作品已從集錦中移除",
+        });
+        
         return {
           ...item,
-          isBookmarked: !item.isBookmarked
+          isBookmarked: newStatus
         };
       }
       return item;
     }));
+  };
+  
+  // Open comments modal
+  const handleOpenComments = (post: ExtendedPortfolioItem) => {
+    setSelectedPostForComments(post);
+    setIsCommentModalOpen(true);
   };
   
   // Filter items based on search and tags
@@ -221,7 +254,21 @@ const Portfolios = () => {
     <div className="min-h-screen pt-16 bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold mb-4 md:mb-0">作品集</h1>
+          <div className="flex items-center mb-4 md:mb-0">
+            <h1 className="text-3xl font-bold">作品集</h1>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="ml-2 text-beauty-muted">
+                    <Info size={18} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>探索美容專業人士的作品，點擊標籤查看相關作品</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           
           <div className="flex items-center space-x-4 w-full md:w-auto">
             <div className="relative flex-1 md:w-64">
@@ -236,109 +283,120 @@ const Portfolios = () => {
             </div>
             
             {isAuthenticated && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="bg-beauty-primary hover:bg-beauty-primary/90">
-                    <PlusCircle size={16} className="mr-2" />
-                    發布作品
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
-                  <DialogHeader>
-                    <DialogTitle>發布新作品</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">
-                        作品圖片 <span className="text-red-500">*</span>
-                      </label>
-                      {previewUrl ? (
-                        <div className="relative mt-2 mb-4">
-                          <img 
-                            src={previewUrl} 
-                            alt="Preview" 
-                            className="w-full h-56 object-cover rounded-md"
-                          />
-                          <button 
-                            className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full"
-                            onClick={() => {
-                              setNewPostImage(null);
-                              setPreviewUrl(null);
-                            }}
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="border-2 border-dashed border-gray-300 rounded-md p-8 text-center cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => document.getElementById('image-upload')?.click()}>
-                          <Upload className="mx-auto text-gray-400 mb-2" />
-                          <p className="text-sm text-gray-500">點擊上傳圖片</p>
-                          <input
-                            id="image-upload"
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleImageChange}
-                          />
-                        </div>
-                      )}
+              <div className="flex items-center space-x-2">
+                <Button
+                  onClick={() => navigate('/my-collections')}
+                  variant="outline"
+                  className="whitespace-nowrap"
+                >
+                  <Bookmark size={16} className="mr-2" />
+                  我的集錦
+                </Button>
+                
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="bg-beauty-primary hover:bg-beauty-primary/90 whitespace-nowrap">
+                      <PlusCircle size={16} className="mr-2" />
+                      發布作品
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle>發布新作品</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">
+                          作品圖片 <span className="text-red-500">*</span>
+                        </label>
+                        {previewUrl ? (
+                          <div className="relative mt-2 mb-4">
+                            <img 
+                              src={previewUrl} 
+                              alt="Preview" 
+                              className="w-full h-56 object-cover rounded-md"
+                            />
+                            <button 
+                              className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full"
+                              onClick={() => {
+                                setNewPostImage(null);
+                                setPreviewUrl(null);
+                              }}
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="border-2 border-dashed border-gray-300 rounded-md p-8 text-center cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => document.getElementById('image-upload')?.click()}>
+                            <Upload className="mx-auto text-gray-400 mb-2" />
+                            <p className="text-sm text-gray-500">點擊上傳圖片</p>
+                            <input
+                              id="image-upload"
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleImageChange}
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">
+                          標題 <span className="text-red-500">*</span>
+                        </label>
+                        <Input 
+                          value={newPostTitle}
+                          onChange={(e) => setNewPostTitle(e.target.value)}
+                          placeholder="請輸入作品標題"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">
+                          分類 <span className="text-red-500">*</span>
+                        </label>
+                        <select 
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          value={newPostCategory}
+                          onChange={(e) => setNewPostCategory(e.target.value)}
+                        >
+                          <option value="">請選擇分類</option>
+                          <option value="美髮作品">美髮作品</option>
+                          <option value="美甲作品">美甲作品</option>
+                          <option value="美妝作品">美妝作品</option>
+                          <option value="美容作品">美容作品</option>
+                          <option value="造型設計">造型設計</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">描述</label>
+                        <Textarea 
+                          value={newPostDescription}
+                          onChange={(e) => setNewPostDescription(e.target.value)}
+                          placeholder="請輸入作品描述"
+                          rows={3}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-1 block">標籤</label>
+                        <Input 
+                          value={newPostTags}
+                          onChange={(e) => setNewPostTags(e.target.value)}
+                          placeholder="請輸入標籤，以空格分隔 (例如: 美甲 藝術 日式)"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">標籤之間請用空格分隔</p>
+                      </div>
+                      <div className="flex justify-end pt-4">
+                        <Button 
+                          className="bg-beauty-primary hover:bg-beauty-primary/90"
+                          onClick={handleCreatePost}
+                        >
+                          發布作品
+                        </Button>
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">
-                        標題 <span className="text-red-500">*</span>
-                      </label>
-                      <Input 
-                        value={newPostTitle}
-                        onChange={(e) => setNewPostTitle(e.target.value)}
-                        placeholder="請輸入作品標題"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">
-                        分類 <span className="text-red-500">*</span>
-                      </label>
-                      <select 
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                        value={newPostCategory}
-                        onChange={(e) => setNewPostCategory(e.target.value)}
-                      >
-                        <option value="">請選擇分類</option>
-                        <option value="美髮作品">美髮作品</option>
-                        <option value="美甲作品">美甲作品</option>
-                        <option value="美妝作品">美妝作品</option>
-                        <option value="美容作品">美容作品</option>
-                        <option value="造型設計">造型設計</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">描述</label>
-                      <Textarea 
-                        value={newPostDescription}
-                        onChange={(e) => setNewPostDescription(e.target.value)}
-                        placeholder="請輸入作品描述"
-                        rows={3}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">標籤</label>
-                      <Input 
-                        value={newPostTags}
-                        onChange={(e) => setNewPostTags(e.target.value)}
-                        placeholder="請輸入標籤，以空格分隔 (例如: 美甲 藝術 日式)"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">標籤之間請用空格分隔</p>
-                    </div>
-                    <div className="flex justify-end pt-4">
-                      <Button 
-                        className="bg-beauty-primary hover:bg-beauty-primary/90"
-                        onClick={handleCreatePost}
-                      >
-                        發布作品
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogContent>
+                </Dialog>
+              </div>
             )}
           </div>
         </div>
@@ -412,7 +470,10 @@ const Portfolios = () => {
                       <Heart size={20} fill={item.isLiked ? 'currentColor' : 'none'} />
                       <span className="ml-1 text-sm">{item.likes}</span>
                     </button>
-                    <button className="flex items-center text-gray-700">
+                    <button 
+                      className="flex items-center text-gray-700"
+                      onClick={() => handleOpenComments(item)}
+                    >
                       <MessageCircle size={20} />
                       <span className="ml-1 text-sm">{item.comments}</span>
                     </button>
@@ -420,6 +481,7 @@ const Portfolios = () => {
                   <button 
                     className={`${item.isBookmarked ? 'text-beauty-primary' : 'text-gray-700'}`}
                     onClick={() => handleBookmark(item.id)}
+                    title={item.isBookmarked ? "從集錦中移除" : "加入我的集錦"}
                   >
                     <BookmarkPlus size={20} fill={item.isBookmarked ? 'currentColor' : 'none'} />
                   </button>
@@ -462,6 +524,21 @@ const Portfolios = () => {
               </Dialog>
             )}
           </div>
+        )}
+        
+        {/* Comment Modal */}
+        {selectedPostForComments && (
+          <CommentModal 
+            isOpen={isCommentModalOpen}
+            onClose={() => {
+              setIsCommentModalOpen(false);
+              setSelectedPostForComments(null);
+            }}
+            postId={selectedPostForComments.id}
+            postTitle={selectedPostForComments.title}
+            postImage={selectedPostForComments.imageUrl}
+            authorName={selectedPostForComments.authorName}
+          />
         )}
         
         {/* Prompt to Login if not authenticated */}
