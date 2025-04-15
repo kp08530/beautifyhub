@@ -1,11 +1,41 @@
 
 import { Link } from 'react-router-dom';
-import { ServiceItem } from '@/data/services';
+import { Service } from '@/data/services';
 import { convertToTWD } from '@/lib/utils';
 
-const ServiceCard = ({ service }: { service: ServiceItem }) => {
+// Updated props interface to include the optional selection-related props
+interface ServiceCardProps {
+  service: Service;
+  isSelectable?: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
+}
+
+const ServiceCard = ({ service, isSelectable = false, isSelected = false, onSelect }: ServiceCardProps) => {
+  // If the card is selectable, use a div instead of a Link and add selection styling
+  const CardWrapper = ({ children }: { children: React.ReactNode }) => {
+    if (isSelectable) {
+      return (
+        <div 
+          onClick={onSelect}
+          className={`beauty-card overflow-hidden group flex flex-col h-full cursor-pointer transition-all ${
+            isSelected ? 'ring-2 ring-beauty-primary ring-offset-2' : ''
+          }`}
+        >
+          {children}
+        </div>
+      );
+    }
+    
+    return (
+      <Link to={`/business/${service.businessId}`} className="beauty-card overflow-hidden group flex flex-col h-full">
+        {children}
+      </Link>
+    );
+  };
+
   return (
-    <Link to={`/business/${service.businessId}`} className="beauty-card overflow-hidden group flex flex-col h-full">
+    <CardWrapper>
       <div className="relative w-full h-48 overflow-hidden">
         <img 
           src={service.imageUrl} 
@@ -47,8 +77,16 @@ const ServiceCard = ({ service }: { service: ServiceItem }) => {
             {service.duration}分鐘
           </span>
         </div>
+
+        {isSelectable && isSelected && (
+          <div className="absolute top-2 right-2 w-6 h-6 bg-beauty-primary rounded-full flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+        )}
       </div>
-    </Link>
+    </CardWrapper>
   );
 };
 

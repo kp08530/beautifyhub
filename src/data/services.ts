@@ -1,13 +1,14 @@
-
 export interface Service {
   id: string;
   businessId: string;
   name: string;
   description: string;
   price: number;
+  discountPrice?: number;  // Optional discount price
   duration: number; // in minutes
   category: string;
   imageUrl?: string;
+  businessName?: string;  // Optional business name
 }
 
 export const services: Service[] = [
@@ -98,7 +99,7 @@ export const services: Service[] = [
     description: "去除死皮，使皮膚光滑細緻，促進血液循環。",
     price: 1200,
     duration: 60,
-    category: "身體護理",
+    category: "���體護理",
     imageUrl: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80"
   },
   {
