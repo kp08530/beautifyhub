@@ -56,10 +56,8 @@ const Dashboard = () => {
   const [selectedAdminId, setSelectedAdminId] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // Define a type for the logs tab to ensure we use consistent values
   type LogsTabType = 'admin_logs' | 'system_logs' | 'login_logs';
 
-  // Update the state type
   const [logsActiveTab, setLogsActiveTab] = useState<LogsTabType>('admin_logs');
 
   useEffect(() => {
@@ -68,7 +66,6 @@ const Dashboard = () => {
       return;
     }
 
-    // Mock data for demo purposes
     const mockUsers = [
       { id: '1', name: '王小明', email: 'user1@example.com', phone: '0912345678', address: '台北市信義區', imageUrl: '', createdAt: '2023-05-15' },
       { id: '2', name: '李小花', email: 'user2@example.com', phone: '0923456789', address: '台北市大安區', imageUrl: '', createdAt: '2023-06-20' },
@@ -133,10 +130,8 @@ const Dashboard = () => {
         idToDelete = selectedAdminId;
       }
 
-      // Mock API call for demo purposes
       console.log('Deleting from URL:', deleteUrl);
       
-      // After successful deletion, update the state
       if (selectedUserId) {
         setUsers(users.filter(user => user.id !== idToDelete));
       } else if (selectedBusinessId) {
@@ -145,7 +140,6 @@ const Dashboard = () => {
         setAdmins(admins.filter(admin => admin.id !== idToDelete));
       }
 
-      // Reset the selected IDs and close the modal
       setIsDeleteModalOpen(false);
       setSelectedUserId(null);
       setSelectedBusinessId(null);
@@ -160,7 +154,7 @@ const Dashboard = () => {
     console.log('Searching for:', searchTerm);
   };
 
-  const handleDateSelect = (date) => {
+  const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
   };
 
@@ -188,7 +182,6 @@ const Dashboard = () => {
     <div className="container py-12">
       <h1 className="text-3xl font-bold mb-6">管理員後台</h1>
 
-      {/* Users Section */}
       <Tabs defaultValue="users" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="users">消費者帳號管理</TabsTrigger>
@@ -437,7 +430,6 @@ const Dashboard = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Delete Confirmation Modals */}
       <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -457,7 +449,6 @@ const Dashboard = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Logs Section */}
       <Tabs value={logsActiveTab} onValueChange={(value) => setLogsActiveTab(value as LogsTabType)} className="mt-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">系統日誌管理</h2>
@@ -485,7 +476,11 @@ const Dashboard = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <DatePicker date={selectedDate} onSelect={setSelectedDate} />
+              <DatePicker 
+                date={selectedDate} 
+                setDate={setSelectedDate}
+                onSelect={handleDateSelect}
+              />
               <Button variant="outline" onClick={() => console.log('Exporting logs for date:', selectedDate)}>
                 <Download className="h-4 w-4 mr-2" />
                 匯出報表
@@ -554,7 +549,11 @@ const Dashboard = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <DatePicker date={selectedDate} onSelect={setSelectedDate} />
+              <DatePicker 
+                date={selectedDate} 
+                setDate={setSelectedDate}
+                onSelect={handleDateSelect}
+              />
               <Button variant="outline" onClick={() => console.log('Exporting logs for date:', selectedDate)}>
                 <Download className="h-4 w-4 mr-2" />
                 匯出報表
@@ -620,7 +619,11 @@ const Dashboard = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <DatePicker date={selectedDate} onSelect={setSelectedDate} />
+              <DatePicker 
+                date={selectedDate} 
+                setDate={setSelectedDate}
+                onSelect={handleDateSelect}
+              />
               <Button variant="outline" onClick={() => console.log('Exporting logs for date:', selectedDate)}>
                 <Download className="h-4 w-4 mr-2" />
                 匯出報表

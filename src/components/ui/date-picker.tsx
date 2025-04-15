@@ -14,12 +14,20 @@ import {
 interface DatePickerProps {
   date: Date | undefined
   setDate: (date: Date | undefined) => void
+  onSelect?: (date: Date | undefined) => void
   className?: string
   disabled?: boolean
   placeholder?: string
 }
 
-export function DatePicker({ date, setDate, className, disabled, placeholder = "選擇日期" }: DatePickerProps) {
+export function DatePicker({ date, setDate, onSelect, className, disabled, placeholder = "選擇日期" }: DatePickerProps) {
+  const handleSelect = (selectedDate: Date | undefined) => {
+    setDate(selectedDate);
+    if (onSelect) {
+      onSelect(selectedDate);
+    }
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -40,7 +48,7 @@ export function DatePicker({ date, setDate, className, disabled, placeholder = "
         <Calendar
           mode="single"
           selected={date}
-          onSelect={setDate}
+          onSelect={handleSelect}
           initialFocus
         />
       </PopoverContent>
