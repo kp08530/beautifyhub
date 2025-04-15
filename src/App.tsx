@@ -26,55 +26,57 @@ import Search from "./pages/Search";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<><Navbar /><Index /></>} />
-            <Route path="/businesses" element={<><Navbar /><Businesses /></>} />
-            <Route path="/services" element={<><Navbar /><Services /></>} />
-            <Route path="/portfolios" element={<><Navbar /><Portfolios /></>} />
-            <Route path="/business/:id" element={<><Navbar /><BusinessDetail /></>} />
-            <Route path="/login" element={<><Navbar /><Login /></>} />
-            <Route path="/register" element={<><Navbar /><Register /></>} />
-            <Route path="/business-signup" element={<><Navbar /><BusinessSignup /></>} />
-            <Route path="/terms" element={<><Navbar /><Terms /></>} />
-            <Route path="/privacy" element={<><Navbar /><Privacy /></>} />
-            <Route path="/search" element={<><Navbar /><Search /></>} />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Navbar />
-                <Profile />
-              </ProtectedRoute>
-            } />
-            <Route path="/appointments" element={
-              <ProtectedRoute>
-                <Navbar />
-                <Appointments />
-              </ProtectedRoute>
-            } />
-            <Route path="/business-profile" element={
-              <ProtectedRoute allowedRoles={['business']}>
-                <Navbar />
-                <BusinessProfile />
-              </ProtectedRoute>
-            } />
-            <Route path="/dashboard" element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<><Navbar /><NotFound /></>} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<><Navbar /><Index /></>} />
+              <Route path="/businesses" element={<><Navbar /><Businesses /></>} />
+              <Route path="/services" element={<><Navbar /><Services /></>} />
+              <Route path="/portfolios" element={<><Navbar /><Portfolios /></>} />
+              <Route path="/business/:id" element={<><Navbar /><BusinessDetail /></>} />
+              <Route path="/login" element={<><Navbar /><Login /></>} />
+              <Route path="/register" element={<><Navbar /><Register /></>} />
+              <Route path="/business-signup" element={<><Navbar /><BusinessSignup /></>} />
+              <Route path="/terms" element={<><Navbar /><Terms /></>} />
+              <Route path="/privacy" element={<><Navbar /><Privacy /></>} />
+              <Route path="/search" element={<><Navbar /><Search /></>} />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Navbar />
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="/appointments" element={
+                <ProtectedRoute>
+                  <Navbar />
+                  <Appointments />
+                </ProtectedRoute>
+              } />
+              <Route path="/business-profile" element={
+                <ProtectedRoute allowedRoles={['business']}>
+                  <Navbar />
+                  <BusinessProfile />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard" element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<><Navbar /><NotFound /></>} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
