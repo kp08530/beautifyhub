@@ -42,7 +42,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { authData, logout, refreshAuthData } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const [users, setUsers] = useState([]);
   const [businesses, setBusinesses] = useState([]);
   const [admins, setAdmins] = useState([]);
@@ -63,39 +63,32 @@ const Dashboard = () => {
   const [logsActiveTab, setLogsActiveTab] = useState<LogsTabType>('admin_logs');
 
   useEffect(() => {
-    if (!authData?.token) {
+    if (!isAuthenticated) {
       navigate('/login');
       return;
     }
 
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/admin/dashboard`, {
-          headers: {
-            'Authorization': `Bearer ${authData?.token}`,
-          },
-        });
+    // Mock data for demo purposes
+    const mockUsers = [
+      { id: '1', name: '王小明', email: 'user1@example.com', phone: '0912345678', address: '台北市信義區', imageUrl: '', createdAt: '2023-05-15' },
+      { id: '2', name: '李小花', email: 'user2@example.com', phone: '0923456789', address: '台北市大安區', imageUrl: '', createdAt: '2023-06-20' },
+    ];
+    
+    const mockBusinesses = [
+      { id: '1', name: '美麗髮廊', ownerName: '張老闆', email: 'business1@example.com', phone: '0234567890', address: '台北市中山區', imageUrl: '', createdAt: '2023-04-10' },
+      { id: '2', name: '時尚美甲店', ownerName: '林老闆', email: 'business2@example.com', phone: '0245678901', address: '台北市松山區', imageUrl: '', createdAt: '2023-07-05' },
+    ];
+    
+    const mockAdmins = [
+      { id: '1', name: '管理員A', email: 'admin1@example.com', role: 'super-admin', imageUrl: '', createdAt: '2023-03-01' },
+      { id: '2', name: '管理員B', email: 'admin2@example.com', role: 'content-admin', imageUrl: '', createdAt: '2023-08-15' },
+    ];
+    
+    setUsers(mockUsers);
+    setBusinesses(mockBusinesses);
+    setAdmins(mockAdmins);
 
-        if (!response.ok) {
-          if (response.status === 401) {
-            logout();
-            navigate('/login');
-            return;
-          }
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setUsers(data.users);
-        setBusinesses(data.businesses);
-        setAdmins(data.admins);
-      } catch (error) {
-        console.error("Could not fetch data:", error);
-      }
-    };
-
-    fetchData();
-  }, [authData?.token, navigate, logout]);
+  }, [isAuthenticated, navigate, logout]);
 
   const handleEditUser = (userId) => {
     navigate(`/users/${userId}/edit`);
@@ -130,28 +123,19 @@ const Dashboard = () => {
       let idToDelete = null;
 
       if (selectedUserId) {
-        deleteUrl = `${process.env.REACT_APP_API_URL}/admin/users/${selectedUserId}`;
+        deleteUrl = `/api/admin/users/${selectedUserId}`;
         idToDelete = selectedUserId;
       } else if (selectedBusinessId) {
-        deleteUrl = `${process.env.REACT_APP_API_URL}/admin/businesses/${selectedBusinessId}`;
+        deleteUrl = `/api/admin/businesses/${selectedBusinessId}`;
         idToDelete = selectedBusinessId;
       } else if (selectedAdminId) {
-        deleteUrl = `${process.env.REACT_APP_API_URL}/admin/admins/${selectedAdminId}`;
+        deleteUrl = `/api/admin/admins/${selectedAdminId}`;
         idToDelete = selectedAdminId;
       }
 
-      const response = await fetch(deleteUrl, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${authData?.token}`,
-        },
-      });
-
-      if (!response.ok) {
-        console.error('Failed to delete:', response.status);
-        return;
-      }
-
+      // Mock API call for demo purposes
+      console.log('Deleting from URL:', deleteUrl);
+      
       // After successful deletion, update the state
       if (selectedUserId) {
         setUsers(users.filter(user => user.id !== idToDelete));
@@ -454,60 +438,16 @@ const Dashboard = () => {
       </Tabs>
 
       {/* Delete Confirmation Modals */}
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button variant="destructive" size="sm">
-            <Trash2 className="h-4 w-4" />
-            刪除
-          </Button>
-        </AlertDialogTrigger>
+      <AlertDialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確定要刪除此消費者帳號？</AlertDialogTitle>
+            <AlertDialogTitle>
+              {selectedUserId ? "確定要刪除此消費者帳號？" : 
+               selectedBusinessId ? "確定要刪除此商家帳號？" : 
+               "確定要刪除此管理員帳號？"}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              此操作無法撤銷。這將永久刪除該消費者帳號及其所有相關數據。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>確認刪除</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button variant="destructive" size="sm">
-            <Trash2 className="h-4 w-4" />
-            刪除
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>確定要刪除此商家帳號？</AlertDialogTitle>
-            <AlertDialogDescription>
-              此操作無法撤銷。這將永久刪除該商家帳號及其所有相關數據。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>確認刪除</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button variant="destructive" size="sm">
-            <Trash2 className="h-4 w-4" />
-            刪除
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>確定要刪除此管理員帳號？</AlertDialogTitle>
-            <AlertDialogDescription>
-              此操作無法撤銷。這將永久刪除該管理員帳號及其所有相關數據。
+              此操作無法撤銷。這將永久刪除該帳號及其所有相關數據。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -518,223 +458,221 @@ const Dashboard = () => {
       </AlertDialog>
 
       {/* Logs Section */}
-      <TabsContent value="logs" className="space-y-4">
-        <div className="flex justify-between items-center">
+      <Tabs value={logsActiveTab} onValueChange={(value) => setLogsActiveTab(value as LogsTabType)} className="mt-8">
+        <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">系統日誌管理</h2>
         </div>
         
-        <Tabs defaultValue="admin_logs" className="w-full" onValueChange={(value) => setLogsActiveTab(value as LogsTabType)}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="admin_logs">管理員操作日誌</TabsTrigger>
-            <TabsTrigger value="system_logs">系統日誌</TabsTrigger>
-            <TabsTrigger value="login_logs">登入日誌</TabsTrigger>
-          </TabsList>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="admin_logs">管理員操作日誌</TabsTrigger>
+          <TabsTrigger value="system_logs">系統日誌</TabsTrigger>
+          <TabsTrigger value="login_logs">登入日誌</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="admin_logs" className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder="搜尋管理員日誌..."
+                className="max-w-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Button variant="outline" onClick={() => console.log('Searching logs:', searchTerm)}>
+                <Search className="h-4 w-4 mr-2" />
+                搜尋
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <DatePicker date={selectedDate} onSelect={setSelectedDate} />
+              <Button variant="outline" onClick={() => console.log('Exporting logs for date:', selectedDate)}>
+                <Download className="h-4 w-4 mr-2" />
+                匯出報表
+              </Button>
+            </div>
+          </div>
           
-          <TabsContent value="admin_logs" className="space-y-4">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="搜尋管理員日誌..."
-                  className="max-w-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <Button variant="outline" onClick={handleSearch}>
-                  <Search className="h-4 w-4 mr-2" />
-                  搜尋
-                </Button>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <DatePicker />
-                <Button variant="outline" onClick={handleExport}>
-                  <Download className="h-4 w-4 mr-2" />
-                  匯出報表
-                </Button>
-              </div>
-            </div>
-            
-            <Table>
-              <TableCaption>管理員操作日誌列表。</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>管理員</TableHead>
-                  <TableHead>操作</TableHead>
-                  <TableHead>時間</TableHead>
-                  <TableHead>IP地址</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>John Doe</TableCell>
-                  <TableCell>刪除了使用者帳號</TableCell>
-                  <TableCell>2024-07-15 14:30:00</TableCell>
-                  <TableCell>192.168.1.1</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Jane Smith</TableCell>
-                  <TableCell>修改了商家資訊</TableCell>
-                  <TableCell>2024-07-15 15:45:00</TableCell>
-                  <TableCell>192.168.1.2</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-            
-            <div className="flex items-center justify-end space-x-2 py-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-              >
-                上一頁
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNextPage}
-              >
-                下一頁
-              </Button>
-            </div>
-          </TabsContent>
+          <Table>
+            <TableCaption>管理員操作日誌列表。</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>管理員</TableHead>
+                <TableHead>操作</TableHead>
+                <TableHead>時間</TableHead>
+                <TableHead>IP地址</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>John Doe</TableCell>
+                <TableCell>刪除了使用者帳號</TableCell>
+                <TableCell>2024-07-15 14:30:00</TableCell>
+                <TableCell>192.168.1.1</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Jane Smith</TableCell>
+                <TableCell>修改了商家資訊</TableCell>
+                <TableCell>2024-07-15 15:45:00</TableCell>
+                <TableCell>192.168.1.2</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
           
-          <TabsContent value="system_logs" className="space-y-4">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="搜尋系統日誌..."
-                  className="max-w-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <Button variant="outline" onClick={handleSearch}>
-                  <Search className="h-4 w-4 mr-2" />
-                  搜尋
-                </Button>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <DatePicker />
-                <Button variant="outline" onClick={handleExport}>
-                  <Download className="h-4 w-4 mr-2" />
-                  匯出報表
-                </Button>
-              </div>
-            </div>
-            
-            <Table>
-              <TableCaption>系統日誌列表。</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>時間</TableHead>
-                  <TableHead>事件</TableHead>
-                  <TableHead>描述</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>2024-07-15 16:00:00</TableCell>
-                  <TableCell>伺服器啟動</TableCell>
-                  <TableCell>伺服器成功啟動</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>2024-07-15 16:05:00</TableCell>
-                  <TableCell>資料庫連線</TableCell>
-                  <TableCell>成功連線至資料庫</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-            
-            <div className="flex items-center justify-end space-x-2 py-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-              >
-                上一頁
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNextPage}
-              >
-                下一頁
+          <div className="flex items-center justify-end space-x-2 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+            >
+              上一頁
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+            >
+              下一頁
+            </Button>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="system_logs" className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder="搜尋系統日誌..."
+                className="max-w-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Button variant="outline" onClick={() => console.log('Searching logs:', searchTerm)}>
+                <Search className="h-4 w-4 mr-2" />
+                搜尋
               </Button>
             </div>
-          </TabsContent>
+            
+            <div className="flex items-center gap-2">
+              <DatePicker date={selectedDate} onSelect={setSelectedDate} />
+              <Button variant="outline" onClick={() => console.log('Exporting logs for date:', selectedDate)}>
+                <Download className="h-4 w-4 mr-2" />
+                匯出報表
+              </Button>
+            </div>
+          </div>
           
-          <TabsContent value="login_logs" className="space-y-4">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="搜尋登入日誌..."
-                  className="max-w-sm"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <Button variant="outline" onClick={handleSearch}>
-                  <Search className="h-4 w-4 mr-2" />
-                  搜尋
-                </Button>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <DatePicker />
-                <Button variant="outline" onClick={handleExport}>
-                  <Download className="h-4 w-4 mr-2" />
-                  匯出報表
-                </Button>
-              </div>
-            </div>
-            
-            <Table>
-              <TableCaption>登入日誌列表。</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>使用者</TableHead>
-                  <TableHead>登入時間</TableHead>
-                  <TableHead>IP地址</TableHead>
-                  <TableHead>狀態</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>John Doe</TableCell>
-                  <TableCell>2024-07-15 10:00:00</TableCell>
-                  <TableCell>192.168.1.100</TableCell>
-                  <TableCell>成功</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Jane Smith</TableCell>
-                  <TableCell>2024-07-15 11:30:00</TableCell>
-                  <TableCell>192.168.1.101</TableCell>
-                  <TableCell>失敗</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-            
-            <div className="flex items-center justify-end space-x-2 py-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-              >
-                上一頁
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNextPage}
-              >
-                下一頁
+          <Table>
+            <TableCaption>系統日誌列表。</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>時間</TableHead>
+                <TableHead>事件</TableHead>
+                <TableHead>描述</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>2024-07-15 16:00:00</TableCell>
+                <TableCell>伺服器啟動</TableCell>
+                <TableCell>伺服器成功啟動</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>2024-07-15 16:05:00</TableCell>
+                <TableCell>資料庫連線</TableCell>
+                <TableCell>成功連線至資料庫</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+          
+          <div className="flex items-center justify-end space-x-2 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+            >
+              上一頁
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+            >
+              下一頁
+            </Button>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="login_logs" className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder="搜尋登入日誌..."
+                className="max-w-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Button variant="outline" onClick={() => console.log('Searching logs:', searchTerm)}>
+                <Search className="h-4 w-4 mr-2" />
+                搜尋
               </Button>
             </div>
-          </TabsContent>
-        </Tabs>
-      </TabsContent>
+            
+            <div className="flex items-center gap-2">
+              <DatePicker date={selectedDate} onSelect={setSelectedDate} />
+              <Button variant="outline" onClick={() => console.log('Exporting logs for date:', selectedDate)}>
+                <Download className="h-4 w-4 mr-2" />
+                匯出報表
+              </Button>
+            </div>
+          </div>
+          
+          <Table>
+            <TableCaption>登入日誌列表。</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>使用者</TableHead>
+                <TableHead>登入時間</TableHead>
+                <TableHead>IP地址</TableHead>
+                <TableHead>狀態</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>John Doe</TableCell>
+                <TableCell>2024-07-15 10:00:00</TableCell>
+                <TableCell>192.168.1.100</TableCell>
+                <TableCell>成功</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Jane Smith</TableCell>
+                <TableCell>2024-07-15 11:30:00</TableCell>
+                <TableCell>192.168.1.101</TableCell>
+                <TableCell>失敗</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+          
+          <div className="flex items-center justify-end space-x-2 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+            >
+              上一頁
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+            >
+              下一頁
+            </Button>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
