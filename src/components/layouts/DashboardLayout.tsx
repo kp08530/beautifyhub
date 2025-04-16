@@ -1,4 +1,3 @@
-
 import {
   Sidebar,
   SidebarContent,
@@ -26,6 +25,7 @@ import {
   HelpCircle,
   Mail,
   ImageIcon,
+  Home,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -48,9 +48,16 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen flex w-full">
         <Sidebar>
           <SidebarHeader>
-            <div className="p-4 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-md bg-purple-500 flex items-center justify-center text-white font-bold">B</div>
-              <h2 className="text-lg font-bold">BeautifyHub</h2>
+            <div className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-md bg-purple-500 flex items-center justify-center text-white font-bold">B</div>
+                <h2 className="text-lg font-bold">BeautifyHub</h2>
+              </div>
+              <Button variant="ghost" size="icon" asChild className="ml-2">
+                <Link to="/" title="返回首頁">
+                  <Home className="h-5 w-5" />
+                </Link>
+              </Button>
             </div>
           </SidebarHeader>
           <SidebarContent>
