@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -29,8 +28,56 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// 示範用的假資料
-const mockBusiness = {
+interface Business {
+  id: string;
+  name: string;
+  description: string;
+  address: string;
+  phone: string;
+  email: string;
+  openingHours: Array<{ day: string; hours: string }>;
+  imageUrl: string;
+  rating: number;
+  services: string[];
+  categories: string[];
+  featured: boolean;
+}
+
+interface Appointment {
+  id: string;
+  customerName: string;
+  service: string;
+  date: string;
+  time: string;
+  status: string;
+}
+
+interface Service {
+  id: string;
+  name: string;
+  price: number;
+  duration: number;
+  description: string;
+}
+
+interface Advertisement {
+  id: string;
+  title: string;
+  imageUrl: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+  visits: number;
+  lastVisit: string;
+}
+
+const mockBusiness: Business = {
   id: "5",
   name: "美麗世界 Beautiful World",
   description: "提供全方位美容服務的專業沙龍",
@@ -53,7 +100,7 @@ const mockBusiness = {
   featured: true
 };
 
-const mockAppointments = [
+const mockAppointments: Appointment[] = [
   {
     id: "a1",
     customerName: "林小美",
@@ -80,7 +127,7 @@ const mockAppointments = [
   }
 ];
 
-const mockServices = [
+const mockServices: Service[] = [
   {
     id: "s1",
     name: "基礎臉部護理",
@@ -104,7 +151,7 @@ const mockServices = [
   }
 ];
 
-const mockAdvertisements = [
+const mockAdvertisements: Advertisement[] = [
   {
     id: "ad1",
     title: "春季美容特惠",
@@ -123,7 +170,7 @@ const mockAdvertisements = [
   }
 ];
 
-const mockCustomers = [
+const mockCustomers: Customer[] = [
   { id: "c1", name: "林小美", phone: "0912-345-678", visits: 5, lastVisit: "2025-04-10" },
   { id: "c2", name: "王大明", phone: "0923-456-789", visits: 3, lastVisit: "2025-04-05" },
   { id: "c3", name: "張小華", phone: "0934-567-890", visits: 8, lastVisit: "2025-04-15" },
@@ -135,24 +182,22 @@ const BusinessProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('profile');
-  const [business, setBusiness] = useState(mockBusiness);
+  const [business, setBusiness] = useState<Business>(mockBusiness);
   const [editing, setEditing] = useState(false);
-  const [editedBusiness, setEditedBusiness] = useState(mockBusiness);
-  const [appointments, setAppointments] = useState(mockAppointments);
-  const [services, setServices] = useState(mockServices);
-  const [advertisements, setAdvertisements] = useState(mockAdvertisements);
-  const [customers, setCustomers] = useState(mockCustomers);
+  const [editedBusiness, setEditedBusiness] = useState<Business>(mockBusiness);
+  const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
+  const [services, setServices] = useState<Service[]>(mockServices);
+  const [advertisements, setAdvertisements] = useState<Advertisement[]>(mockAdvertisements);
+  const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
   
-  // Dialogs state
-  const [serviceDialog, setServiceDialog] = useState({ open: false, mode: 'add', data: null });
-  const [appointmentDialog, setAppointmentDialog] = useState({ open: false, data: null });
-  const [adDialog, setAdDialog] = useState({ open: false, mode: 'add', data: null });
-  const [deleteDialog, setDeleteDialog] = useState({ open: false, type: '', id: '' });
-  const [newService, setNewService] = useState({ name: '', price: 0, duration: 30, description: '' });
-  const [newAd, setNewAd] = useState({ title: '', imageUrl: '/placeholder.svg', startDate: '', endDate: '' });
+  const [serviceDialog, setServiceDialog] = useState<{ open: boolean; mode: 'add' | 'edit'; data: Service | null }>({ open: false, mode: 'add', data: null });
+  const [appointmentDialog, setAppointmentDialog] = useState<{ open: boolean; data: Appointment | null }>({ open: false, data: null });
+  const [adDialog, setAdDialog] = useState<{ open: boolean; mode: 'add' | 'edit'; data: Advertisement | null }>({ open: false, mode: 'add', data: null });
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; type: string; id: string }>({ open: false, type: '', id: '' });
+  const [newService, setNewService] = useState<Omit<Service, 'id'> & { id?: string }>({ name: '', price: 0, duration: 30, description: '' });
+  const [newAd, setNewAd] = useState<Omit<Advertisement, 'id' | 'status'> & { id?: string; status?: string }>({ title: '', imageUrl: '/placeholder.svg', startDate: '', endDate: '' });
   
   useEffect(() => {
-    // 檢查是否為商家帳戶
     if (!isBusiness) {
       navigate('/');
       toast({
@@ -165,7 +210,6 @@ const BusinessProfile = () => {
   
   const handleEditToggle = () => {
     if (editing) {
-      // 儲存編輯
       setBusiness(editedBusiness);
       toast({
         title: "資料已更新",
@@ -175,7 +219,7 @@ const BusinessProfile = () => {
     setEditing(!editing);
   };
   
-  const handleBusinessChange = (e) => {
+  const handleBusinessChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setEditedBusiness(prev => ({
       ...prev,
@@ -183,7 +227,7 @@ const BusinessProfile = () => {
     }));
   };
   
-  const handleOpeningHoursChange = (index, field, value) => {
+  const handleOpeningHoursChange = (index: number, field: string, value: string) => {
     const updatedHours = [...editedBusiness.openingHours];
     updatedHours[index] = {
       ...updatedHours[index],
@@ -196,18 +240,17 @@ const BusinessProfile = () => {
     }));
   };
 
-  // Service management functions
   const openAddServiceDialog = () => {
     setNewService({ name: '', price: 0, duration: 30, description: '' });
     setServiceDialog({ open: true, mode: 'add', data: null });
   };
 
-  const openEditServiceDialog = (service) => {
+  const openEditServiceDialog = (service: Service) => {
     setNewService({ ...service });
     setServiceDialog({ open: true, mode: 'edit', data: service });
   };
 
-  const handleServiceChange = (e) => {
+  const handleServiceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setNewService(prev => ({
       ...prev,
@@ -217,8 +260,8 @@ const BusinessProfile = () => {
 
   const handleServiceSubmit = () => {
     if (serviceDialog.mode === 'add') {
-      const newServiceWithId = {
-        ...newService,
+      const newServiceWithId: Service = {
+        ...newService as Omit<Service, 'id'>,
         id: `s${services.length + 1}`
       };
       setServices([...services, newServiceWithId]);
@@ -228,7 +271,7 @@ const BusinessProfile = () => {
       });
     } else {
       const updatedServices = services.map(service => 
-        service.id === serviceDialog.data.id ? newService : service
+        service.id === serviceDialog.data?.id ? { ...newService, id: service.id } as Service : service
       );
       setServices(updatedServices);
       toast({
@@ -239,7 +282,7 @@ const BusinessProfile = () => {
     setServiceDialog({ open: false, mode: 'add', data: null });
   };
 
-  const handleServiceDelete = (id) => {
+  const handleServiceDelete = (id: string) => {
     setDeleteDialog({ open: true, type: 'service', id });
   };
 
@@ -262,12 +305,10 @@ const BusinessProfile = () => {
     setDeleteDialog({ open: false, type: '', id: '' });
   };
 
-  // Appointment management functions
-  const viewAppointmentDetails = (appointment) => {
+  const viewAppointmentDetails = (appointment: Appointment) => {
     setAppointmentDialog({ open: true, data: appointment });
   };
 
-  // Advertisement management functions
   const openAddAdDialog = () => {
     const today = new Date();
     const nextMonth = new Date(today);
@@ -282,7 +323,7 @@ const BusinessProfile = () => {
     setAdDialog({ open: true, mode: 'add', data: null });
   };
 
-  const handleAdChange = (e) => {
+  const handleAdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewAd(prev => ({
       ...prev,
@@ -292,8 +333,8 @@ const BusinessProfile = () => {
 
   const handleAdSubmit = () => {
     if (adDialog.mode === 'add') {
-      const newAdWithId = {
-        ...newAd,
+      const newAdWithId: Advertisement = {
+        ...newAd as Omit<Advertisement, 'id' | 'status'>,
         id: `ad${advertisements.length + 1}`,
         status: '審核中'
       };
@@ -304,7 +345,7 @@ const BusinessProfile = () => {
       });
     } else {
       const updatedAds = advertisements.map(ad => 
-        ad.id === adDialog.data.id ? { ...newAd, status: ad.status } : ad
+        ad.id === adDialog.data?.id ? { ...newAd, id: ad.id, status: ad.status } as Advertisement : ad
       );
       setAdvertisements(updatedAds);
       toast({
@@ -315,16 +356,15 @@ const BusinessProfile = () => {
     setAdDialog({ open: false, mode: 'add', data: null });
   };
 
-  const handleAdDelete = (id) => {
+  const handleAdDelete = (id: string) => {
     setDeleteDialog({ open: true, type: 'ad', id });
   };
-  
+
   return (
     <div className="min-h-screen pt-16">
       <div className="beauty-section">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Sidebar */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div className="p-6 text-center border-b">
@@ -415,10 +455,8 @@ const BusinessProfile = () => {
               </div>
             </div>
             
-            {/* Main Content */}
             <div className="lg:col-span-3">
               <div className="bg-white rounded-lg shadow-sm p-6">
-                {/* Profile Tab */}
                 {activeTab === 'profile' && (
                   <div>
                     <div className="flex justify-between items-center mb-6">
@@ -604,7 +642,6 @@ const BusinessProfile = () => {
                   </div>
                 )}
                 
-                {/* Appointments Tab */}
                 {activeTab === 'appointments' && (
                   <div>
                     <div className="flex justify-between items-center mb-6">
@@ -655,7 +692,6 @@ const BusinessProfile = () => {
                   </div>
                 )}
                 
-                {/* Services Tab */}
                 {activeTab === 'services' && (
                   <div>
                     <div className="flex justify-between items-center mb-6">
@@ -709,7 +745,6 @@ const BusinessProfile = () => {
                   </div>
                 )}
                 
-                {/* Advertisements Tab */}
                 {activeTab === 'advertisements' && (
                   <div>
                     <div className="flex justify-between items-center mb-6">
@@ -773,7 +808,6 @@ const BusinessProfile = () => {
                   </div>
                 )}
                 
-                {/* Customers Tab */}
                 {activeTab === 'customers' && (
                   <div>
                     <div className="flex justify-between items-center mb-6">
@@ -826,7 +860,6 @@ const BusinessProfile = () => {
                   </div>
                 )}
                 
-                {/* Settings Tab */}
                 {activeTab === 'settings' && (
                   <div>
                     <div className="flex justify-between items-center mb-6">
@@ -911,7 +944,6 @@ const BusinessProfile = () => {
         </div>
       </div>
       
-      {/* Service Dialog */}
       <Dialog open={serviceDialog.open} onOpenChange={(open) => !open && setServiceDialog({ open: false, mode: 'add', data: null })}>
         <DialogContent>
           <DialogHeader>
@@ -984,7 +1016,6 @@ const BusinessProfile = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Appointment Detail Dialog */}
       <Dialog open={appointmentDialog.open} onOpenChange={(open) => !open && setAppointmentDialog({ open: false, data: null })}>
         <DialogContent>
           <DialogHeader>
@@ -1072,7 +1103,6 @@ const BusinessProfile = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Advertisement Dialog */}
       <Dialog open={adDialog.open} onOpenChange={(open) => !open && setAdDialog({ open: false, mode: 'add', data: null })}>
         <DialogContent>
           <DialogHeader>
@@ -1150,7 +1180,6 @@ const BusinessProfile = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, type: '', id: '' })}>
         <DialogContent>
           <DialogHeader>

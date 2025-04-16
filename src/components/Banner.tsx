@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,7 +50,7 @@ export function Banner() {
         }}
         className="w-full relative"
         defaultIndex={activeIndex}
-        onSelect={setActiveIndex}
+        onSelect={(index) => setActiveIndex(index)}
       >
         <CarouselContent>
           {banners.map((banner) => (

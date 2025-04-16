@@ -19,8 +19,18 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
+// Define interfaces for type safety
+interface Advertisement {
+  id: string;
+  title: string;
+  imageUrl: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+}
+
 // 示範用的假資料
-const mockAds = [
+const mockAds: Advertisement[] = [
   {
     id: "ad1",
     title: "春季美容特惠",
@@ -49,11 +59,11 @@ const mockAds = [
 
 const BusinessAdvertisements = () => {
   const { toast } = useToast();
-  const [ads, setAds] = useState(mockAds);
-  const [adDialog, setAdDialog] = useState({ open: false, mode: 'add', data: null });
-  const [viewDialog, setViewDialog] = useState({ open: false, data: null });
-  const [deleteDialog, setDeleteDialog] = useState({ open: false, id: '' });
-  const [newAd, setNewAd] = useState({ 
+  const [ads, setAds] = useState<Advertisement[]>(mockAds);
+  const [adDialog, setAdDialog] = useState<{ open: boolean; mode: 'add' | 'edit'; data: Advertisement | null }>({ open: false, mode: 'add', data: null });
+  const [viewDialog, setViewDialog] = useState<{ open: boolean; data: Advertisement | null }>({ open: false, data: null });
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; id: string }>({ open: false, id: '' });
+  const [newAd, setNewAd] = useState<Omit<Advertisement, 'id' | 'status'> & { id?: string; status?: string }>({ 
     title: '', 
     imageUrl: '/placeholder.svg', 
     startDate: '', 
@@ -74,16 +84,16 @@ const BusinessAdvertisements = () => {
     setAdDialog({ open: true, mode: 'add', data: null });
   };
 
-  const openEditAdDialog = (ad) => {
+  const openEditAdDialog = (ad: Advertisement) => {
     setNewAd({ ...ad });
     setAdDialog({ open: true, mode: 'edit', data: ad });
   };
 
-  const openViewAdDialog = (ad) => {
+  const openViewAdDialog = (ad: Advertisement) => {
     setViewDialog({ open: true, data: ad });
   };
 
-  const handleAdChange = (e) => {
+  const handleAdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewAd(prev => ({
       ...prev,
@@ -93,7 +103,7 @@ const BusinessAdvertisements = () => {
 
   const handleAdSubmit = () => {
     if (adDialog.mode === 'add') {
-      const newAdWithId = {
+      const newAdWithId: Advertisement = {
         ...newAd,
         id: `ad${ads.length + 1}`,
         status: '審核中'
@@ -105,7 +115,7 @@ const BusinessAdvertisements = () => {
       });
     } else {
       const updatedAds = ads.map(ad => 
-        ad.id === adDialog.data.id ? { ...newAd, status: ad.status } : ad
+        ad.id === adDialog.data?.id ? { ...newAd, id: ad.id, status: ad.status } as Advertisement : ad
       );
       setAds(updatedAds);
       toast({
@@ -116,7 +126,7 @@ const BusinessAdvertisements = () => {
     setAdDialog({ open: false, mode: 'add', data: null });
   };
 
-  const handleAdDelete = (id) => {
+  const handleAdDelete = (id: string) => {
     setDeleteDialog({ open: true, id });
   };
 
