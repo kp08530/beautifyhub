@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,6 +41,16 @@ export function Banner() {
     setActiveIndex(index);
   };
 
+  // Use an API ref to control the carousel
+  const [api, setApi] = useState<any>(null);
+
+  useEffect(() => {
+    if (!api) return;
+    
+    // Update the carousel when activeIndex changes
+    api.scrollTo(activeIndex);
+  }, [activeIndex, api]);
+
   return (
     <div className="w-full max-w-6xl mx-auto px-4 mb-12">
       <Carousel
@@ -49,8 +59,7 @@ export function Banner() {
           loop: true,
         }}
         className="w-full relative"
-        defaultIndex={activeIndex}
-        onSelect={(index) => setActiveIndex(index)}
+        setApi={setApi}
       >
         <CarouselContent>
           {banners.map((banner) => (
