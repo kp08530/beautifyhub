@@ -27,6 +27,13 @@ import MyCollections from "./pages/MyCollections";
 import Pricing from "./pages/Pricing";
 import Support from "./pages/Support";
 
+// Import dashboard pages
+import DashboardUsers from "./pages/dashboard/Users";
+import DashboardBusinesses from "./pages/dashboard/Businesses";
+import DashboardAppointments from "./pages/dashboard/Appointments";
+import DashboardReports from "./pages/dashboard/Reports";
+import DashboardSettings from "./pages/dashboard/Settings";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -75,11 +82,39 @@ const App = () => {
                   <BusinessProfile />
                 </ProtectedRoute>
               } />
+              
+              {/* Dashboard Routes */}
               <Route path="/dashboard" element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <Dashboard />
                 </ProtectedRoute>
               } />
+              <Route path="/dashboard/users" element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <DashboardUsers />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/businesses" element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <DashboardBusinesses />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/appointments" element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <DashboardAppointments />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/reports" element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <DashboardReports />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/settings" element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <DashboardSettings />
+                </ProtectedRoute>
+              } />
+              
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<><Navbar /><NotFound /></>} />
             </Routes>
