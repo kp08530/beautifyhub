@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -33,6 +32,7 @@ import DashboardBusinesses from "./pages/dashboard/Businesses";
 import DashboardAppointments from "./pages/dashboard/Appointments";
 import DashboardReports from "./pages/dashboard/Reports";
 import DashboardSettings from "./pages/dashboard/Settings";
+import DashboardAdvertisements from "./pages/dashboard/Advertisements";
 
 const queryClient = new QueryClient();
 
@@ -112,6 +112,11 @@ const App = () => {
               <Route path="/dashboard/settings" element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <DashboardSettings />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/advertisements" element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <DashboardAdvertisements />
                 </ProtectedRoute>
               } />
               
