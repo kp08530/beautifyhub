@@ -1,3 +1,5 @@
+
+import { useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,7 +14,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -26,14 +28,26 @@ import {
   Mail,
   ImageIcon,
   Home,
+  Search,
+  ChevronDown,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -41,6 +55,32 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   const isActive = (path: string) => {
     return location.pathname === path;
+  };
+
+  // Dummy businesses for the search dropdown
+  const businesses = [
+    { id: 1, name: "美麗髮廊" },
+    { id: 2, name: "時尚美甲" },
+    { id: 3, name: "專業SPA中心" },
+    { id: 4, name: "自然美容" },
+    { id: 5, name: "精緻美容中心" },
+  ];
+
+  const filteredBusinesses = businesses.filter(business =>
+    business.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setShowDropdown(true);
+  };
+
+  const handleBusinessSelect = (businessId: number) => {
+    // In a real app, this would navigate to the business management page
+    // For now, let's just simulate it by navigating to the businesses page
+    setShowDropdown(false);
+    setSearchTerm("");
+    navigate(`/dashboard/businesses`);
   };
 
   return (
@@ -156,6 +196,40 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center justify-between mb-6 bg-white p-4 rounded-lg shadow-sm">
               <SidebarTrigger />
               <div className="flex items-center gap-3">
+                <div className="relative">
+                  <DropdownMenu open={showDropdown} onOpenChange={setShowDropdown}>
+                    <DropdownMenuTrigger asChild>
+                      <div className="relative w-64">
+                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="搜尋商家..."
+                          className="pl-8 pr-8"
+                          value={searchTerm}
+                          onChange={handleSearchChange}
+                          onClick={() => setShowDropdown(true)}
+                        />
+                        <ChevronDown className="absolute right-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-64">
+                      {filteredBusinesses.length > 0 ? (
+                        filteredBusinesses.map(business => (
+                          <DropdownMenuItem 
+                            key={business.id}
+                            onClick={() => handleBusinessSelect(business.id)}
+                          >
+                            <Store className="mr-2 h-4 w-4" />
+                            {business.name}
+                          </DropdownMenuItem>
+                        ))
+                      ) : (
+                        <div className="p-2 text-sm text-muted-foreground text-center">
+                          {searchTerm ? "沒有找到商家" : "輸入商家名稱搜尋"}
+                        </div>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
                 <Button variant="ghost" size="icon">
                   <BellRing className="h-5 w-5" />
                 </Button>
