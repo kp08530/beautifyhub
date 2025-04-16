@@ -25,6 +25,7 @@ import {
   BellRing,
   HelpCircle,
   Mail,
+  ImageIcon,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -86,6 +87,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                       <Link to="/dashboard/appointments">
                         <Calendar />
                         <span>預約管理</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={isActive("/dashboard/advertisements")}>
+                      <Link to="/dashboard/advertisements">
+                        <ImageIcon />
+                        <span>廣告管理</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

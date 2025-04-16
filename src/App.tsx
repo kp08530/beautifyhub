@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +19,7 @@ import Appointments from "./pages/Appointments";
 import Dashboard from "./pages/Dashboard";
 import BusinessSignup from "./pages/BusinessSignup";
 import BusinessProfile from "./pages/BusinessProfile";
+import BusinessAdvertisements from "./pages/BusinessAdvertisements";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
@@ -80,6 +82,12 @@ const App = () => {
                 <ProtectedRoute allowedRoles={['business']}>
                   <Navbar />
                   <BusinessProfile />
+                </ProtectedRoute>
+              } />
+              <Route path="/business-advertisements" element={
+                <ProtectedRoute allowedRoles={['business']}>
+                  <Navbar />
+                  <BusinessAdvertisements />
                 </ProtectedRoute>
               } />
               
