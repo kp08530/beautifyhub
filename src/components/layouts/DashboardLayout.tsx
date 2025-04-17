@@ -125,10 +125,24 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     ));
   };
 
+  const markAllNotificationsAsRead = () => {
+    setNotifications(notifications.map(notif => ({ ...notif, read: true })));
+    toast({
+      title: "所有通知已標記為已讀",
+    });
+  };
+
   const handleMessageClick = (id: number) => {
     setMessages(messages.map(msg => 
       msg.id === id ? { ...msg, read: true } : msg
     ));
+  };
+
+  const markAllMessagesAsRead = () => {
+    setMessages(messages.map(msg => ({ ...msg, read: true })));
+    toast({
+      title: "所有訊息已標記為已讀",
+    });
   };
 
   const handleHelpClick = () => {
@@ -151,8 +165,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <div className="w-8 h-8 rounded-md bg-purple-500 flex items-center justify-center text-white font-bold">B</div>
                 <h2 className="text-lg font-bold">BeautifyHub</h2>
               </div>
-              <Button variant="ghost" size="icon" asChild className="ml-2">
-                <Link to="/" title="返回首頁">
+              <Button variant="ghost" size="icon" asChild className="ml-2" title="返回首頁">
+                <Link to="/">
                   <Home className="h-5 w-5" />
                 </Link>
               </Button>
@@ -205,6 +219,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={isActive("/dashboard/advertisements")}>
                       <Link to="/dashboard/advertisements">
@@ -215,14 +230,25 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   </SidebarMenuItem>
                   
                   {currentRole === "admin" && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={isActive("/dashboard/reports")}>
-                        <Link to="/dashboard/reports">
-                          <LineChart />
-                          <span>報表分析</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    <>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive("/dashboard/notifications")}>
+                          <Link to="/dashboard/notifications">
+                            <BellRing />
+                            <span>通知管理</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={isActive("/dashboard/reports")}>
+                          <Link to="/dashboard/reports">
+                            <LineChart />
+                            <span>報表分析</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </>
                   )}
                 </SidebarMenu>
               </SidebarGroupContent>
@@ -327,7 +353,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   <PopoverContent className="w-80" align="end">
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="font-medium">通知</h3>
-                      <Button variant="ghost" size="sm" className="text-xs">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs" 
+                        onClick={markAllNotificationsAsRead}
+                      >
                         全部標為已讀
                       </Button>
                     </div>
@@ -336,7 +367,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                         notifications.map(notification => (
                           <div 
                             key={notification.id}
-                            className={`mb-2 p-2 rounded ${notification.read ? '' : 'bg-muted'}`}
+                            className={`mb-2 p-2 rounded cursor-pointer ${notification.read ? '' : 'bg-muted'}`}
                             onClick={() => handleNotificationClick(notification.id)}
                           >
                             <div className="flex justify-between">
@@ -351,6 +382,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                           沒有通知
                         </p>
                       )}
+                    </div>
+                    <div className="mt-2 pt-2 border-t text-center">
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link to="/dashboard/notifications">
+                          查看所有通知
+                        </Link>
+                      </Button>
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -370,7 +408,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   <PopoverContent className="w-80" align="end">
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="font-medium">訊息</h3>
-                      <Button variant="ghost" size="sm" className="text-xs">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs" 
+                        onClick={markAllMessagesAsRead}
+                      >
                         全部標為已讀
                       </Button>
                     </div>
@@ -379,7 +422,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                         messages.map(message => (
                           <div 
                             key={message.id}
-                            className={`mb-2 p-2 rounded ${message.read ? '' : 'bg-muted'}`}
+                            className={`mb-2 p-2 rounded cursor-pointer ${message.read ? '' : 'bg-muted'}`}
                             onClick={() => handleMessageClick(message.id)}
                           >
                             <div className="flex justify-between">
@@ -394,6 +437,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                           沒有訊息
                         </p>
                       )}
+                    </div>
+                    <div className="mt-2 pt-2 border-t text-center">
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link to="/messages">
+                          查看所有訊息
+                        </Link>
+                      </Button>
                     </div>
                   </PopoverContent>
                 </Popover>

@@ -27,6 +27,7 @@ import Search from "./pages/Search";
 import MyCollections from "./pages/MyCollections";
 import Pricing from "./pages/Pricing";
 import Support from "./pages/Support";
+import Messages from "./pages/Messages";
 
 // Import dashboard pages
 import DashboardUsers from "./pages/dashboard/Users";
@@ -35,6 +36,7 @@ import DashboardAppointments from "./pages/dashboard/Appointments";
 import DashboardReports from "./pages/dashboard/Reports";
 import DashboardSettings from "./pages/dashboard/Settings";
 import DashboardAdvertisements from "./pages/dashboard/Advertisements";
+import DashboardNotifications from "./pages/dashboard/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +66,11 @@ const App = () => {
                 <ProtectedRoute>
                   <Navbar />
                   <MyCollections />
+                </ProtectedRoute>
+              } />
+              <Route path="/messages" element={
+                <ProtectedRoute>
+                  <Messages />
                 </ProtectedRoute>
               } />
               <Route path="/profile" element={
@@ -125,6 +132,11 @@ const App = () => {
               <Route path="/dashboard/advertisements" element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <DashboardAdvertisements />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/notifications" element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <DashboardNotifications />
                 </ProtectedRoute>
               } />
               
