@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, Store, Pencil, UserCog, Trash2, Check, X, ToggleLeft, ToggleRight, Filter, MoreHorizontal } from "lucide-react";
+import { Search, Store, Pencil, UserCog, Trash2, Check, X, ToggleLeft, ToggleRight, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { BusinessManagementDialog } from "@/components/dashboard/BusinessManagementDialog";
+import { BusinessManagersDialog } from "@/components/dashboard/BusinessManagersDialog";
 import { UserManagementDialog } from "@/components/dashboard/UserManagementDialog";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -35,7 +36,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
@@ -54,7 +54,6 @@ interface Business {
 const BusinessesPage = () => {
   const { toast } = useToast();
   
-  // Dummy data for demonstration
   const [businesses, setBusinesses] = useState<Business[]>([
     { id: 1, name: "美麗髮廊", owner: "李小花", location: "台北市", services: 12, status: "已認證", businessType: "hair" },
     { id: 2, name: "時尚美甲", owner: "張美美", location: "台中市", services: 8, status: "已認證", businessType: "nail" },
@@ -78,7 +77,6 @@ const BusinessesPage = () => {
   } | null>(null);
   
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
-  const [showDialog, setShowDialog] = useState(false);
   const [businessToDelete, setBusinessToDelete] = useState<Business | null>(null);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
@@ -92,13 +90,11 @@ const BusinessesPage = () => {
   ];
 
   const filteredBusinesses = businesses.filter(business => {
-    // Text search filter
     const matchesSearchTerm = 
       business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       business.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
       business.location.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Business type filter
     const matchesTypeFilter = typeFilter.length === 0 || 
       (business.businessType && typeFilter.includes(business.businessType));
     
@@ -225,7 +221,6 @@ const BusinessesPage = () => {
     role: UserRole;
     status: "活躍" | "停用";
   }) => {
-    // In a real application, this would create a new user with business admin permissions
     toast({
       title: "管理員已指派",
       description: `已為商家 ${currentBusiness?.name} 指派 ${userData.name} 為管理員`,
@@ -269,7 +264,6 @@ const BusinessesPage = () => {
     switch (action) {
       case "edit":
         setSelectedBusiness(business);
-        setShowDialog(true);
         break;
       case "delete":
         setBusinessToDelete(business);
@@ -443,7 +437,6 @@ const BusinessesPage = () => {
         </Card>
       </div>
 
-      {/* Add Business Dialog */}
       <BusinessManagementDialog
         isOpen={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
@@ -451,7 +444,6 @@ const BusinessesPage = () => {
         mode="add"
       />
 
-      {/* Edit Business Dialog */}
       {currentBusiness && (
         <BusinessManagementDialog
           isOpen={isEditDialogOpen}
@@ -462,7 +454,6 @@ const BusinessesPage = () => {
         />
       )}
 
-      {/* Approve Business Dialog */}
       {currentBusiness && (
         <BusinessManagementDialog
           isOpen={isApproveDialogOpen}
@@ -473,7 +464,6 @@ const BusinessesPage = () => {
         />
       )}
 
-      {/* Assign Admin Dialog */}
       {currentBusiness && (
         <UserManagementDialog
           isOpen={isAssignAdminDialogOpen}
@@ -485,25 +475,33 @@ const BusinessesPage = () => {
         />
       )}
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>確定要刪除此商家？</AlertDialogTitle>
             <AlertDialogDescription>
-              此操作無法撤銷，商家 {currentBusiness?.name} 的所有資料將被永久刪除。
+              此操作無法撤銷，商家 {businessToDelete?.name} 的所有資料將被永久刪除。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteBusiness} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={() => {
+              if (businessToDelete) {
+                setBusinesses(businesses.filter(business => business.id !== businessToDelete.id));
+                toast({
+                  title: "刪除成功",
+                  description: `商家 ${businessToDelete.name} 已成功刪除`,
+                });
+                setShowDeleteAlert(false);
+                setBusinessToDelete(null);
+              }
+            }} className="bg-red-600 hover:bg-red-700">
               刪除
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Business Managers Dialog */}
       {selectedBusinessForManagers && (
         <BusinessManagersDialog 
           open={showManagersDialog} 
