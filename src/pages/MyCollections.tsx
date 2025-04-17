@@ -296,270 +296,270 @@ const MyCollections = () => {
               收藏商家
             </TabsTrigger>
           </TabsList>
-        </Tabs>
-        
-        <TabsContent value={activeTab} forceMount={true} hidden={activeTab !== "portfolio"}>
-          <div className="flex flex-col md:flex-row gap-8">
-            {/* Collections Sidebar */}
-            <div className="w-full md:w-64 bg-white rounded-lg shadow-sm p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="font-bold">集錦列表</h2>
-                <button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="text-beauty-primary hover:text-beauty-primary/80 transition-colors"
-                >
-                  <FolderPlus size={20} />
-                </button>
-              </div>
-              
-              <div className="space-y-2">
-                {collections.map(collection => (
-                  <div 
-                    key={collection.id}
-                    className={`p-3 rounded-md cursor-pointer flex items-center justify-between ${
-                      selectedCollection?.id === collection.id 
-                        ? 'bg-beauty-primary/10 text-beauty-primary' 
-                        : 'hover:bg-gray-100'
-                    }`}
-                    onClick={() => handleSelectCollection(collection)}
+          
+          <TabsContent value="portfolio">
+            <div className="flex flex-col md:flex-row gap-8">
+              {/* Collections Sidebar */}
+              <div className="w-full md:w-64 bg-white rounded-lg shadow-sm p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="font-bold">集錦列表</h2>
+                  <button
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="text-beauty-primary hover:text-beauty-primary/80 transition-colors"
                   >
-                    <div className="flex items-center flex-1 min-w-0">
-                      <Folder size={18} className="mr-2 flex-shrink-0" />
-                      
-                      {editingCollectionId === collection.id ? (
-                        <div className="flex items-center w-full">
-                          <Input
-                            value={editingName}
-                            onChange={(e) => setEditingName(e.target.value)}
-                            className="h-7 mr-1 text-beauty-dark"
-                            onClick={(e) => e.stopPropagation()}
-                            autoFocus
-                          />
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRenameCollection(collection.id);
-                            }}
-                            className="text-green-500 mr-1"
-                          >
-                            <Check size={16} />
-                          </button>
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingCollectionId(null);
-                            }}
-                            className="text-red-500"
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
-                      ) : (
-                        <>
-                          <span className="truncate">{collection.name}</span>
-                          
-                          <div className="ml-auto flex items-center opacity-0 group-hover:opacity-100">
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingCollectionId(collection.id);
-                                setEditingName(collection.name);
-                              }}
-                              className="text-beauty-muted hover:text-beauty-primary ml-2"
-                            >
-                              <Edit2 size={14} />
-                            </button>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteCollection(collection.id);
-                              }}
-                              className="text-beauty-muted hover:text-red-500 ml-2"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    <span className="text-xs bg-gray-100 text-beauty-muted rounded-full px-2 py-0.5 ml-2">
-                      {collection.items.length}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Collection Content */}
-            <div className="flex-1">
-              {selectedCollection ? (
-                <>
-                  <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                    <h2 className="text-2xl font-bold mb-2">{selectedCollection.name}</h2>
-                    <p className="text-beauty-muted">
-                      {selectedCollection.items.length} 個作品 · 創建於 {new Date(selectedCollection.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  
-                  {selectedCollection.items.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {selectedCollection.items.map(item => (
-                        <div key={item.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
-                          <div className="relative h-48 overflow-hidden">
-                            <img 
-                              src={item.imageUrl} 
-                              alt={item.title} 
-                              className="w-full h-full object-cover"
+                    <FolderPlus size={20} />
+                  </button>
+                </div>
+                
+                <div className="space-y-2">
+                  {collections.map(collection => (
+                    <div 
+                      key={collection.id}
+                      className={`p-3 rounded-md cursor-pointer flex items-center justify-between ${
+                        selectedCollection?.id === collection.id 
+                          ? 'bg-beauty-primary/10 text-beauty-primary' 
+                          : 'hover:bg-gray-100'
+                      }`}
+                      onClick={() => handleSelectCollection(collection)}
+                    >
+                      <div className="flex items-center flex-1 min-w-0">
+                        <Folder size={18} className="mr-2 flex-shrink-0" />
+                        
+                        {editingCollectionId === collection.id ? (
+                          <div className="flex items-center w-full">
+                            <Input
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              className="h-7 mr-1 text-beauty-dark"
+                              onClick={(e) => e.stopPropagation()}
+                              autoFocus
                             />
-                            <button
-                              onClick={() => handleRemoveItem(selectedCollection.id, item.id)}
-                              className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full hover:bg-red-500 transition-colors"
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRenameCollection(collection.id);
+                              }}
+                              className="text-green-500 mr-1"
+                            >
+                              <Check size={16} />
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingCollectionId(null);
+                              }}
+                              className="text-red-500"
                             >
                               <X size={16} />
                             </button>
                           </div>
-                          
-                          <div className="p-4">
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <h3 className="font-bold truncate">{item.title}</h3>
-                                <p className="text-xs text-beauty-muted">{item.category}</p>
-                              </div>
-                              <div className="flex items-center space-x-3 text-beauty-muted">
-                                <div className="flex items-center">
-                                  <Heart size={14} className="mr-1" />
-                                  <span className="text-xs">{item.likes}</span>
-                                </div>
-                                <div className="flex items-center">
-                                  <MessageCircle size={14} className="mr-1" />
-                                  <span className="text-xs">{item.comments}</span>
-                                </div>
-                              </div>
+                        ) : (
+                          <>
+                            <span className="truncate">{collection.name}</span>
+                            
+                            <div className="ml-auto flex items-center opacity-0 group-hover:opacity-100">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingCollectionId(collection.id);
+                                  setEditingName(collection.name);
+                                }}
+                                className="text-beauty-muted hover:text-beauty-primary ml-2"
+                              >
+                                <Edit2 size={14} />
+                              </button>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteCollection(collection.id);
+                                }}
+                                className="text-beauty-muted hover:text-red-500 ml-2"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <span className="text-xs bg-gray-100 text-beauty-muted rounded-full px-2 py-0.5 ml-2">
+                        {collection.items.length}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Collection Content */}
+              <div className="flex-1">
+                {selectedCollection ? (
+                  <>
+                    <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                      <h2 className="text-2xl font-bold mb-2">{selectedCollection.name}</h2>
+                      <p className="text-beauty-muted">
+                        {selectedCollection.items.length} 個作品 · 創建於 {new Date(selectedCollection.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    
+                    {selectedCollection.items.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {selectedCollection.items.map(item => (
+                          <div key={item.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
+                            <div className="relative h-48 overflow-hidden">
+                              <img 
+                                src={item.imageUrl} 
+                                alt={item.title} 
+                                className="w-full h-full object-cover"
+                              />
+                              <button
+                                onClick={() => handleRemoveItem(selectedCollection.id, item.id)}
+                                className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full hover:bg-red-500 transition-colors"
+                              >
+                                <X size={16} />
+                              </button>
                             </div>
                             
-                            <p className="text-sm text-beauty-muted line-clamp-2 mb-3">
-                              {item.description}
-                            </p>
-                            
-                            <div className="flex items-center mt-2">
-                              <img 
-                                src={item.authorAvatar} 
-                                alt={item.authorName} 
-                                className="w-6 h-6 rounded-full mr-2"
-                              />
-                              <span className="text-xs">{item.authorName}</span>
+                            <div className="p-4">
+                              <div className="flex justify-between items-start mb-2">
+                                <div>
+                                  <h3 className="font-bold truncate">{item.title}</h3>
+                                  <p className="text-xs text-beauty-muted">{item.category}</p>
+                                </div>
+                                <div className="flex items-center space-x-3 text-beauty-muted">
+                                  <div className="flex items-center">
+                                    <Heart size={14} className="mr-1" />
+                                    <span className="text-xs">{item.likes}</span>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <MessageCircle size={14} className="mr-1" />
+                                    <span className="text-xs">{item.comments}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <p className="text-sm text-beauty-muted line-clamp-2 mb-3">
+                                {item.description}
+                              </p>
+                              
+                              <div className="flex items-center mt-2">
+                                <img 
+                                  src={item.authorAvatar} 
+                                  alt={item.authorName} 
+                                  className="w-6 h-6 rounded-full mr-2"
+                                />
+                                <span className="text-xs">{item.authorName}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-                      <div className="text-beauty-muted mb-4">這個集錦還沒有作品</div>
-                      <Button
-                        onClick={() => navigate('/portfolios')}
-                        className="bg-beauty-primary hover:bg-beauty-primary/90"
-                      >
-                        <Plus size={16} className="mr-2" />
-                        瀏覽作品並添加到集錦
-                      </Button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-                  <div className="text-beauty-muted mb-4">請選擇一個集錦查看內容</div>
-                </div>
-              )}
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+                        <div className="text-beauty-muted mb-4">這個集錦還沒有作品</div>
+                        <Button
+                          onClick={() => navigate('/portfolios')}
+                          className="bg-beauty-primary hover:bg-beauty-primary/90"
+                        >
+                          <Plus size={16} className="mr-2" />
+                          瀏覽作品並添加到集錦
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+                    <div className="text-beauty-muted mb-4">請選擇一個集錦查看內容</div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value={activeTab} forceMount={true} hidden={activeTab !== "business"}>
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 className="text-2xl font-bold mb-2">收藏商家</h2>
-            <p className="text-beauty-muted">
-              {favoriteBusinesses.length} 個商家 · 快速查看您收藏的美容服務提供者
-            </p>
-          </div>
+          </TabsContent>
           
-          {favoriteBusinesses.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {favoriteBusinesses.map(business => (
-                <div key={business.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
-                  <div className="relative h-40 overflow-hidden">
-                    <img 
-                      src={business.imageUrl} 
-                      alt={business.name} 
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      onClick={() => handleRemoveBusiness(business.id)}
-                      className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full hover:bg-red-500 transition-colors"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                  
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="font-bold truncate">{business.name}</h3>
-                        <p className="text-xs text-beauty-muted">{business.category}</p>
-                      </div>
-                      <div className="flex items-center text-yellow-500">
-                        <span className="font-medium mr-1">{business.rating.toFixed(1)}</span>
-                        <span className="text-xs text-beauty-muted">({business.reviewCount})</span>
-                      </div>
+          <TabsContent value="business">
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <h2 className="text-2xl font-bold mb-2">收藏商家</h2>
+              <p className="text-beauty-muted">
+                {favoriteBusinesses.length} 個商家 · 快速查看您收藏的美容服務提供者
+              </p>
+            </div>
+            
+            {favoriteBusinesses.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {favoriteBusinesses.map(business => (
+                  <div key={business.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div className="relative h-40 overflow-hidden">
+                      <img 
+                        src={business.imageUrl} 
+                        alt={business.name} 
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        onClick={() => handleRemoveBusiness(business.id)}
+                        className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full hover:bg-red-500 transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
                     </div>
                     
-                    <p className="text-sm text-beauty-muted mb-2">
-                      <span className="inline-block bg-gray-100 text-beauty-muted rounded-full px-2 py-0.5 text-xs mr-1">
-                        {business.location}
-                      </span>
-                    </p>
-                    
-                    <p className="text-sm text-beauty-muted line-clamp-2 mb-3">
-                      {business.description}
-                    </p>
-                    
-                    <div className="flex items-center justify-between mt-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => navigate(`/business/${business.id}`)}
-                      >
-                        <Store size={14} className="mr-1" />
-                        查看詳情
-                      </Button>
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="font-bold truncate">{business.name}</h3>
+                          <p className="text-xs text-beauty-muted">{business.category}</p>
+                        </div>
+                        <div className="flex items-center text-yellow-500">
+                          <span className="font-medium mr-1">{business.rating.toFixed(1)}</span>
+                          <span className="text-xs text-beauty-muted">({business.reviewCount})</span>
+                        </div>
+                      </div>
                       
-                      <Button 
-                        variant="default"
-                        size="sm"
-                        className="bg-beauty-primary hover:bg-beauty-primary/90"
-                        onClick={() => handleMessageBusiness(business.id, business.name)}
-                      >
-                        <MessageCircle size={14} className="mr-1" />
-                        發送訊息
-                      </Button>
+                      <p className="text-sm text-beauty-muted mb-2">
+                        <span className="inline-block bg-gray-100 text-beauty-muted rounded-full px-2 py-0.5 text-xs mr-1">
+                          {business.location}
+                        </span>
+                      </p>
+                      
+                      <p className="text-sm text-beauty-muted line-clamp-2 mb-3">
+                        {business.description}
+                      </p>
+                      
+                      <div className="flex items-center justify-between mt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => navigate(`/business/${business.id}`)}
+                        >
+                          <Store size={14} className="mr-1" />
+                          查看詳情
+                        </Button>
+                        
+                        <Button 
+                          variant="default"
+                          size="sm"
+                          className="bg-beauty-primary hover:bg-beauty-primary/90"
+                          onClick={() => handleMessageBusiness(business.id, business.name)}
+                        >
+                          <MessageCircle size={14} className="mr-1" />
+                          發送訊息
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-              <div className="text-beauty-muted mb-4">您還沒有收藏任何商家</div>
-              <Button
-                onClick={() => navigate('/businesses')}
-                className="bg-beauty-primary hover:bg-beauty-primary/90"
-              >
-                <Plus size={16} className="mr-2" />
-                瀏覽商家並收藏
-              </Button>
-            </div>
-          )}
-        </TabsContent>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+                <div className="text-beauty-muted mb-4">您還沒有收藏任何商家</div>
+                <Button
+                  onClick={() => navigate('/businesses')}
+                  className="bg-beauty-primary hover:bg-beauty-primary/90"
+                >
+                  <Plus size={16} className="mr-2" />
+                  瀏覽商家並收藏
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
       
       {/* Create Collection Modal */}
