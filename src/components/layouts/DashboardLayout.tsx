@@ -31,6 +31,15 @@ import {
   Search,
   ChevronDown,
   Info,
+  Clock,
+  ShieldCheck,
+  FileText,
+  CreditCard,
+  UserCog,
+  MessageCircle,
+  Database,
+  BookOpen,
+  Briefcase
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -60,6 +69,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
   const [currentRole, setCurrentRole] = useState<"admin" | "business">("admin");
+  const [currentRoleLevel, setCurrentRoleLevel] = useState<"super" | "normal">("super");
   const [notifications, setNotifications] = useState([
     { id: 1, title: "新商家申請", message: "有3家新商家等待審核", time: "10分鐘前", read: false },
     { id: 2, title: "新廣告申請", message: "有5個新廣告等待審核", time: "30分鐘前", read: false },
@@ -103,6 +113,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     setShowDropdown(false);
     setSearchTerm("");
     
+    // Navigate to the business dashboard
+    navigate("/business-profile");
+    
     toast({
       title: "角色切換",
       description: `已切換為商家 ${businessName} 的管理員視角`,
@@ -112,6 +125,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const switchToAdminRole = () => {
     setSelectedBusiness(null);
     setCurrentRole("admin");
+    
+    // Navigate back to admin dashboard
+    navigate("/dashboard");
     
     toast({
       title: "角色切換",
@@ -152,8 +168,239 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const toggleRoleLevel = () => {
+    const newRoleLevel = currentRoleLevel === "super" ? "normal" : "super";
+    setCurrentRoleLevel(newRoleLevel);
+    
+    toast({
+      title: "權限切換",
+      description: `已切換為${newRoleLevel === "super" ? "最高" : "一般"}管理員權限`,
+    });
+  };
+
   const unreadNotifications = notifications.filter(n => !n.read).length;
   const unreadMessages = messages.filter(m => !m.read).length;
+
+  // Render different sidebar menus based on role
+  const renderSidebarContent = () => {
+    if (currentRole === "business") {
+      return (
+        <>
+          <SidebarGroup>
+            <SidebarGroupLabel>
+              {selectedBusiness} 管理
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={location.pathname === "/business-profile"}>
+                    <Link to="/business-profile">
+                      <LayoutDashboard />
+                      <span>總覽</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={location.pathname.includes("/dashboard/appointments")}>
+                    <Link to="/dashboard/appointments">
+                      <Calendar />
+                      <span>預約管理</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={location.pathname === "/business-advertisements"}>
+                    <Link to="/business-advertisements">
+                      <ImageIcon />
+                      <span>廣告管理</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={false}>
+                    <Link to="/business-services">
+                      <Briefcase />
+                      <span>服務管理</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={false}>
+                    <Link to="/business-portfolio">
+                      <BookOpen />
+                      <span>作品集管理</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={false}>
+                    <Link to="/business-staff">
+                      <UserCog />
+                      <span>人員管理</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={false}>
+                    <Link to="/business-reports">
+                      <LineChart />
+                      <span>報表分析</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+          
+          <SidebarGroup>
+            <SidebarGroupLabel>系統</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={false}>
+                    <Link to="/business-settings">
+                      <Settings />
+                      <span>設定</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </>
+      );
+    } else {
+      // Admin role
+      return (
+        <>
+          <SidebarGroup>
+            <SidebarGroupLabel>
+              系統管理
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
+                    <Link to="/dashboard">
+                      <LayoutDashboard />
+                      <span>總覽</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/dashboard/users")}>
+                    <Link to="/dashboard/users">
+                      <Users />
+                      <span>用戶管理</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/dashboard/businesses")}>
+                    <Link to="/dashboard/businesses">
+                      <Store />
+                      <span>商家管理</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/dashboard/appointments")}>
+                    <Link to="/dashboard/appointments">
+                      <Calendar />
+                      <span>預約管理</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/dashboard/advertisements")}>
+                    <Link to="/dashboard/advertisements">
+                      <ImageIcon />
+                      <span>廣告管理</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/dashboard/notifications")}>
+                    <Link to="/dashboard/notifications">
+                      <BellRing />
+                      <span>通知管理</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/dashboard/reports")}>
+                    <Link to="/dashboard/reports">
+                      <LineChart />
+                      <span>報表分析</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                {currentRoleLevel === "super" && (
+                  <>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={false}>
+                        <Link to="/dashboard/permissions">
+                          <ShieldCheck />
+                          <span>權限管理</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={false}>
+                        <Link to="/dashboard/system-logs">
+                          <FileText />
+                          <span>系統日誌</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={false}>
+                        <Link to="/dashboard/database">
+                          <Database />
+                          <span>數據管理</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </>
+                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+          
+          <SidebarGroup>
+            <SidebarGroupLabel>系統</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/dashboard/settings")}>
+                    <Link to="/dashboard/settings">
+                      <Settings />
+                      <span>設定</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </>
+      );
+    }
+  };
 
   return (
     <SidebarProvider defaultOpen>
@@ -173,101 +420,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </div>
           </SidebarHeader>
           <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel>
-                {currentRole === "admin" 
-                  ? "系統管理" 
-                  : `${selectedBusiness} 管理`}
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive("/dashboard")}>
-                      <Link to="/dashboard">
-                        <LayoutDashboard />
-                        <span>總覽</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  
-                  {currentRole === "admin" && (
-                    <>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive("/dashboard/users")}>
-                          <Link to="/dashboard/users">
-                            <Users />
-                            <span>用戶管理</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive("/dashboard/businesses")}>
-                          <Link to="/dashboard/businesses">
-                            <Store />
-                            <span>商家管理</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </>
-                  )}
-                  
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive("/dashboard/appointments")}>
-                      <Link to="/dashboard/appointments">
-                        <Calendar />
-                        <span>預約管理</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive("/dashboard/advertisements")}>
-                      <Link to="/dashboard/advertisements">
-                        <ImageIcon />
-                        <span>廣告管理</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  
-                  {currentRole === "admin" && (
-                    <>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive("/dashboard/notifications")}>
-                          <Link to="/dashboard/notifications">
-                            <BellRing />
-                            <span>通知管理</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                      
-                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive("/dashboard/reports")}>
-                          <Link to="/dashboard/reports">
-                            <LineChart />
-                            <span>報表分析</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </>
-                  )}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-            <SidebarGroup>
-              <SidebarGroupLabel>系統</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={isActive("/dashboard/settings")}>
-                      <Link to="/dashboard/settings">
-                        <Settings />
-                        <span>設定</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            {renderSidebarContent()}
           </SidebarContent>
           <SidebarFooter>
             <div className="p-4 border-t">
@@ -277,14 +430,32 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   <AvatarFallback>管</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-medium">管理員</p>
-                  <p className="text-xs text-beauty-muted">admin@beautifyhub.com</p>
+                  <p className="text-sm font-medium">
+                    {currentRole === "admin" ? "管理員" : `${selectedBusiness} 管理員`}
+                    <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">
+                      {currentRoleLevel === "super" ? "最高權限" : "一般權限"}
+                    </span>
+                  </p>
+                  <p className="text-xs text-beauty-muted">
+                    {currentRole === "admin" ? "admin@beautifyhub.com" : "business@example.com"}
+                  </p>
                 </div>
               </div>
-              <Button variant="outline" className="w-full" onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                登出
-              </Button>
+              <div className="space-y-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={toggleRoleLevel}
+                >
+                  <ShieldCheck className="mr-2 h-4 w-4" />
+                  切換權限等級
+                </Button>
+                <Button variant="outline" className="w-full" onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  登出
+                </Button>
+              </div>
             </div>
           </SidebarFooter>
         </Sidebar>
@@ -397,7 +568,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="ghost" size="icon" className="relative">
-                      <Mail className="h-5 w-5" />
+                      <MessageCircle className="h-5 w-5" />
                       {unreadMessages > 0 && (
                         <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                           {unreadMessages}

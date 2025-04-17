@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import {
@@ -36,6 +35,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Badge, Avatar, AvatarImage, AvatarFallback, MoreHorizontal } from "@/components/ui/dialog";
 
 interface Business {
   id: string | number;
@@ -69,6 +69,11 @@ const BusinessesPage = () => {
   const [isAssignAdminDialogOpen, setIsAssignAdminDialogOpen] = useState(false);
   const [currentBusiness, setCurrentBusiness] = useState<Business | undefined>(undefined);
   const [typeFilter, setTypeFilter] = useState<string[]>([]);
+  const [showManagersDialog, setShowManagersDialog] = useState(false);
+  const [selectedBusinessForManagers, setSelectedBusinessForManagers] = useState<{
+    id: string | number;
+    name: string;
+  } | null>(null);
 
   const businessTypes = [
     { value: "hair", label: "美髮" },
@@ -251,6 +256,28 @@ const BusinessesPage = () => {
 
   const clearTypeFilter = () => {
     setTypeFilter([]);
+  };
+
+  const handleAction = (action: string, business: any) => {
+    switch (action) {
+      case "edit":
+        setSelectedBusiness(business);
+        setShowDialog(true);
+        break;
+      case "delete":
+        setBusinessToDelete(business);
+        setShowDeleteAlert(true);
+        break;
+      case "viewManagers":
+        setSelectedBusinessForManagers({
+          id: business.id,
+          name: business.name
+        });
+        setShowManagersDialog(true);
+        break;
+      default:
+        console.log("Unknown action:", action);
+    }
   };
 
   return (
@@ -468,6 +495,16 @@ const BusinessesPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Business Managers Dialog */}
+      {selectedBusinessForManagers && (
+        <BusinessManagersDialog 
+          open={showManagersDialog} 
+          setOpen={setShowManagersDialog} 
+          businessId={selectedBusinessForManagers.id}
+          businessName={selectedBusinessForManagers.name}
+        />
+      )}
     </DashboardLayout>
   );
 };

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -20,7 +19,21 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // If user is already authenticated, redirect to home page
+  const [testAccounts, setTestAccounts] = useState([
+    { type: 'admin', email: 'admin@beautifyhub.com', password: 'admin123', name: '系統管理員' },
+    { type: 'user', email: 'user@example.com', password: 'user123', name: '一般用戶' },
+    { type: 'business', email: 'business@example.com', password: 'business123', name: '美麗髮廊' },
+    { type: 'business', email: 'spa@example.com', password: 'spa123', name: '專業SPA中心' },
+  ]);
+
+  const fillTestAccount = (account: { email: string, password: string }) => {
+    setFormData({
+      email: account.email,
+      password: account.password,
+      rememberMe: false
+    });
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/');
@@ -64,13 +77,13 @@ const Login = () => {
   };
   
   return (
-    <div className="min-h-screen pt-16 bg-gray-50">
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-xl shadow-sm p-8">
-            <div className="text-center mb-8">
-              <h1 className="text-2xl font-bold mb-2">歡迎回來</h1>
-              <p className="text-beauty-muted">登入您的 BeautifyHub 帳戶</p>
+    <div className="min-h-screen pt-20 pb-10 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <div className="max-w-md mx-auto bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="p-6">
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold">登入</h1>
+              <p className="text-beauty-muted">歡迎回到BeautifyHub</p>
             </div>
             
             <form onSubmit={handleSubmit}>
@@ -156,17 +169,25 @@ const Login = () => {
               
               <div className="text-center mt-4 text-sm text-beauty-muted">
                 <p>測試帳號:</p>
-                <p className="mb-1">管理員: admin@beautifyhub.com / admin123</p>
-                <p>一般用戶: user@beautifyhub.com / user123</p>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  {testAccounts.map((account, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className="p-2 text-xs border rounded-md hover:bg-gray-50 transition-colors flex flex-col items-center"
+                      onClick={() => fillTestAccount(account)}
+                    >
+                      <span className="font-medium">{account.name}</span>
+                      <span className="text-beauty-muted truncate w-full text-center">{account.email}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </form>
             
             <div className="text-center mt-6">
-              <p className="text-beauty-muted text-sm">
-                還沒有帳戶？{' '}
-                <Link to="/register" className="text-beauty-primary hover:underline">
-                  立即註冊
-                </Link>
+              <p className="text-sm text-beauty-muted">
+                還沒有帳號？ <Link to="/register" className="text-beauty-primary hover:underline">立即註冊</Link>
               </p>
             </div>
             
@@ -202,15 +223,6 @@ const Login = () => {
                 </button>
               </div>
             </div>
-          </div>
-          
-          <div className="mt-8 text-center">
-            <p className="text-sm text-beauty-muted">
-              點擊「登入」即表示您同意我們的
-              <a href="#" className="text-beauty-primary hover:underline ml-1">服務條款</a>
-              <span className="mx-1">和</span>
-              <a href="#" className="text-beauty-primary hover:underline">隱私政策</a>
-            </p>
           </div>
         </div>
       </div>

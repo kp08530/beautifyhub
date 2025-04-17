@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Calendar, Search, Bookmark } from 'lucide-react';
+import { Menu, X, Calendar, Search, Bookmark, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import UserMenu from './UserMenu';
 
@@ -65,6 +65,9 @@ const Navbar = () => {
                 <Link to="/my-collections" className="text-beauty-dark hover:text-beauty-primary p-2 rounded-full transition-colors">
                   <Bookmark size={20} />
                 </Link>
+                <Link to="/messages" className="text-beauty-dark hover:text-beauty-primary p-2 rounded-full transition-colors">
+                  <MessageCircle size={20} />
+                </Link>
               </>
             )}
             
@@ -127,6 +130,7 @@ const Navbar = () => {
                 <>
                   <Link to="/appointments" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>我的預約</Link>
                   <Link to="/my-collections" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>我的集錦</Link>
+                  <Link to="/messages" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>訊息中心</Link>
                 </>
               )}
             </nav>

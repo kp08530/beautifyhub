@@ -37,6 +37,7 @@ import DashboardReports from "./pages/dashboard/Reports";
 import DashboardSettings from "./pages/dashboard/Settings";
 import DashboardAdvertisements from "./pages/dashboard/Advertisements";
 import DashboardNotifications from "./pages/dashboard/Notifications";
+import DashboardPermissions from "./pages/dashboard/Permissions";
 
 const queryClient = new QueryClient();
 
@@ -137,6 +138,11 @@ const App = () => {
               <Route path="/dashboard/notifications" element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <DashboardNotifications />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard/permissions" element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <DashboardPermissions />
                 </ProtectedRoute>
               } />
               

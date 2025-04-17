@@ -1,30 +1,16 @@
 
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { SearchIcon, Send, Paperclip, ChevronLeft, Info, MoreVertical, Image, File, UserPlus, Phone, Store } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Send, ChevronLeft, ChevronRight, Search, Store, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import { useAuth } from '@/contexts/AuthContext';
 
+// Types for our messages
 interface Message {
   id: string;
   senderId: string;
@@ -32,619 +18,709 @@ interface Message {
   content: string;
   timestamp: Date;
   read: boolean;
-  attachment?: {
-    type: 'image' | 'file';
-    url: string;
-    name: string;
-  };
 }
 
 interface Conversation {
   id: string;
   participantId: string;
   participantName: string;
-  participantAvatar: string;
+  participantAvatar?: string;
   participantType: 'user' | 'business' | 'admin';
-  lastMessage: string;
-  lastMessageTime: Date;
+  lastMessage?: {
+    content: string;
+    timestamp: Date;
+    isFromMe: boolean;
+    read: boolean;
+  };
   unreadCount: number;
 }
 
 const Messages = () => {
-  const { isAuthenticated, user } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const urlParams = new URLSearchParams(location.search);
+  const businessIdFromUrl = urlParams.get('business');
   
+  const [searchTerm, setSearchTerm] = useState('');
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   
-  // Extract business ID from URL query params if available
+  // Mock data for conversations
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-    
-    // Mock data initialization
-    initMockData();
-    
-    const params = new URLSearchParams(location.search);
-    const businessId = params.get('business');
-    
-    if (businessId) {
-      const conversation = generateMockConversations().find(
-        c => c.participantId === businessId
-      );
-      
-      if (conversation) {
-        setSelectedConversation(conversation);
-        // Also generate mock messages for this conversation
-        setMessages(generateMockMessages(conversation.participantId));
-      }
-    }
-  }, [isAuthenticated, location, navigate]);
-  
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-  
-  const initMockData = () => {
-    const mockConversations = generateMockConversations();
-    setConversations(mockConversations);
-    
-    if (mockConversations.length > 0 && !selectedConversation) {
-      setSelectedConversation(mockConversations[0]);
-      setMessages(generateMockMessages(mockConversations[0].participantId));
-    }
-  };
-  
-  const generateMockConversations = (): Conversation[] => {
-    return [
+    // This would be replaced with a real API call in production
+    const mockConversations: Conversation[] = [
       {
-        id: 'conv1',
-        participantId: 'business-1',
+        id: '1',
+        participantId: 'admin1',
+        participantName: '系統管理員',
+        participantType: 'admin',
+        lastMessage: {
+          content: '您好，有什麼需要幫忙的嗎？',
+          timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+          isFromMe: false,
+          read: true,
+        },
+        unreadCount: 0,
+      },
+      {
+        id: '2',
+        participantId: 'business1',
         participantName: '美麗髮廊',
-        participantAvatar: 'https://i.pravatar.cc/150?u=business1',
+        participantAvatar: '/placeholder.svg',
         participantType: 'business',
-        lastMessage: '您好，請問有什麼需要幫助的嗎？',
-        lastMessageTime: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+        lastMessage: {
+          content: '您的預約已確認，期待您的光臨！',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+          isFromMe: false,
+          read: false,
+        },
         unreadCount: 1,
       },
       {
-        id: 'conv2',
-        participantId: 'business-2',
+        id: '3',
+        participantId: 'business2',
         participantName: '時尚美甲',
-        participantAvatar: 'https://i.pravatar.cc/150?u=business2',
+        participantAvatar: '/placeholder.svg',
         participantType: 'business',
-        lastMessage: '您好，謝謝您的諮詢，我們的價格方案如附件所示。',
-        lastMessageTime: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+        lastMessage: {
+          content: '請問您想預約哪個時段？',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3), // 3 hours ago
+          isFromMe: false,
+          read: false,
+        },
+        unreadCount: 1,
+      },
+      {
+        id: '4',
+        participantId: 'business3',
+        participantName: '專業SPA中心',
+        participantAvatar: '/placeholder.svg',
+        participantType: 'business',
+        lastMessage: {
+          content: '我們有新的優惠活動，詳情請見官網。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+          isFromMe: false,
+          read: true,
+        },
         unreadCount: 0,
       },
       {
-        id: 'conv3',
-        participantId: 'admin-1',
-        participantName: '系統管理員',
-        participantAvatar: 'https://i.pravatar.cc/150?u=admin1',
-        participantType: 'admin',
-        lastMessage: '您好，您的帳號已成功升級為會員。',
-        lastMessageTime: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-        unreadCount: 0,
-      },
-      {
-        id: 'conv4',
-        participantId: 'user-1',
-        participantName: '李小花',
-        participantAvatar: 'https://i.pravatar.cc/150?u=user1',
-        participantType: 'user',
-        lastMessage: '謝謝您的推薦，我會考慮的。',
-        lastMessageTime: new Date(Date.now() - 1000 * 60 * 60 * 48), // 2 days ago
+        id: '5',
+        participantId: 'business4',
+        participantName: '自然美容',
+        participantAvatar: '/placeholder.svg',
+        participantType: 'business',
+        lastMessage: {
+          content: '感謝您的光臨，希望您對我們的服務滿意。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
+          isFromMe: false,
+          read: true,
+        },
         unreadCount: 0,
       },
     ];
-  };
-  
-  const generateMockMessages = (recipientId: string): Message[] => {
-    const mockMessages: Message[] = [];
-    const now = new Date();
-    const userId = 'current-user-id'; // current user's ID
     
-    // A day ago
-    mockMessages.push({
-      id: '1',
-      senderId: userId,
-      recipientId,
-      content: '您好，我想詢問一下關於您的服務。',
-      timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 24),
-      read: true,
-    });
-    
-    mockMessages.push({
-      id: '2',
-      senderId: recipientId,
-      recipientId: userId,
-      content: '您好，很高興為您服務。請問您想了解哪方面的服務呢？',
-      timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 23.9),
-      read: true,
-    });
-    
-    // 12 hours ago
-    mockMessages.push({
-      id: '3',
-      senderId: userId,
-      recipientId,
-      content: '我想了解一下您的價格方案，特別是關於美髮/美甲的部分。',
-      timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 12),
-      read: true,
-    });
-    
-    mockMessages.push({
-      id: '4',
-      senderId: recipientId,
-      recipientId: userId,
-      content: '我們的美髮/美甲服務價格如下：\n- 基礎剪髮: $500\n- 染髮: $1,200起\n- 燙髮: $1,800起\n\n您可以在我們的網站上查看更多詳情。',
-      timestamp: new Date(now.getTime() - 1000 * 60 * 60 * 11),
-      read: true,
-    });
-    
-    // Recent
-    if (recipientId === 'business-1') {
-      mockMessages.push({
-        id: '5',
-        senderId: recipientId,
-        recipientId: userId,
-        content: '您好，請問有什麼需要幫助的嗎？',
-        timestamp: new Date(now.getTime() - 1000 * 60 * 5),
-        read: false,
-        attachment: {
-          type: 'image',
-          url: 'https://source.unsplash.com/random/300x200?beauty',
-          name: '價格表.jpg',
-        },
-      });
+    if (businessIdFromUrl) {
+      // Find if this business is already in our conversations
+      const existingConversation = mockConversations.find(
+        conv => conv.participantId === businessIdFromUrl
+      );
+      
+      if (!existingConversation) {
+        // If not, create a new conversation with this business
+        mockConversations.unshift({
+          id: `new-${Date.now()}`,
+          participantId: businessIdFromUrl,
+          participantName: urlParams.get('businessName') || '美容店家',
+          participantAvatar: '/placeholder.svg',
+          participantType: 'business',
+          unreadCount: 0,
+        });
+      } else {
+        // If it exists, select it
+        setSelectedConversation(existingConversation);
+        loadMessages(existingConversation.id);
+      }
     }
     
-    return mockMessages;
-  };
+    setConversations(mockConversations);
+    setTotalPages(Math.ceil(mockConversations.length / 10));
+    
+    if (mockConversations.length > 0 && !selectedConversation) {
+      setSelectedConversation(mockConversations[0]);
+      loadMessages(mockConversations[0].id);
+    }
+  }, [businessIdFromUrl]);
   
-  const filteredConversations = conversations.filter(
-    conversation => conversation.participantName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Function to load messages for a specific conversation
+  const loadMessages = (conversationId: string) => {
+    // This would be replaced with a real API call in production
+    
+    // Mock data for messages based on conversation ID
+    let mockMessages: Message[] = [];
+    
+    if (conversationId === '1') {
+      // Conversation with admin
+      mockMessages = [
+        {
+          id: '101',
+          senderId: 'admin1',
+          recipientId: user?.id || 'currentUser',
+          content: '您好，歡迎使用BeautifyHub！',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
+          read: true,
+        },
+        {
+          id: '102',
+          senderId: user?.id || 'currentUser',
+          recipientId: 'admin1',
+          content: '你好，我想了解一下如何使用平台預約服務？',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2 + 1000 * 60 * 5), // 5 minutes later
+          read: true,
+        },
+        {
+          id: '103',
+          senderId: 'admin1',
+          recipientId: user?.id || 'currentUser',
+          content: '您可以在首頁瀏覽美容店家，選擇心儀的店家後進入其詳細頁面，點擊"預約"按鈕即可進行預約。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2 + 1000 * 60 * 10), // 10 minutes later
+          read: true,
+        },
+        {
+          id: '104',
+          senderId: 'admin1',
+          recipientId: user?.id || 'currentUser',
+          content: '如果您有任何問題，隨時可以來訊詢問我們的客服團隊。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2 + 1000 * 60 * 15), // 15 minutes later
+          read: true,
+        },
+        {
+          id: '105',
+          senderId: user?.id || 'currentUser',
+          recipientId: 'admin1',
+          content: '謝謝，我明白了。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2 + 1000 * 60 * 20), // 20 minutes later
+          read: true,
+        },
+        {
+          id: '106',
+          senderId: 'admin1',
+          recipientId: user?.id || 'currentUser',
+          content: '您好，有什麼需要幫忙的嗎？',
+          timestamp: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+          read: true,
+        },
+      ];
+    } else if (conversationId === '2') {
+      // Conversation with 美麗髮廊
+      mockMessages = [
+        {
+          id: '201',
+          senderId: user?.id || 'currentUser',
+          recipientId: 'business1',
+          content: '你好，我想預約這週六下午2點的剪髮服務。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3), // 3 hours ago
+          read: true,
+        },
+        {
+          id: '202',
+          senderId: 'business1',
+          recipientId: user?.id || 'currentUser',
+          content: '您好，很抱歉，週六下午2點已被預約。請問您可以改到3點或週日同時段嗎？',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+          read: true,
+        },
+        {
+          id: '203',
+          senderId: user?.id || 'currentUser',
+          recipientId: 'business1',
+          content: '那週六3點可以嗎？',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 1.5), // 1.5 hours ago
+          read: true,
+        },
+        {
+          id: '204',
+          senderId: 'business1',
+          recipientId: user?.id || 'currentUser',
+          content: '週六3點可以的，已為您預留。請問是否要確認預約？',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 1.2), // 1.2 hours ago
+          read: true,
+        },
+        {
+          id: '205',
+          senderId: user?.id || 'currentUser',
+          recipientId: 'business1',
+          content: '是的，我確認預約。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 1.1), // 1.1 hours ago
+          read: true,
+        },
+        {
+          id: '206',
+          senderId: 'business1',
+          recipientId: user?.id || 'currentUser',
+          content: '您的預約已確認，期待您的光臨！',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+          read: false,
+        },
+      ];
+    } else if (conversationId === '3') {
+      // Conversation with 時尚美甲
+      mockMessages = [
+        {
+          id: '301',
+          senderId: 'business2',
+          recipientId: user?.id || 'currentUser',
+          content: '感謝您關注我們的服務！我們最近推出了全新的美甲款式，歡迎預約體驗。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
+          read: true,
+        },
+        {
+          id: '302',
+          senderId: user?.id || 'currentUser',
+          recipientId: 'business2',
+          content: '你好，我對你們的新款式很有興趣，可以發一些照片給我參考嗎？',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 hours ago
+          read: true,
+        },
+        {
+          id: '303',
+          senderId: 'business2',
+          recipientId: user?.id || 'currentUser',
+          content: '當然可以，我們稍後會發送照片給您。您打算什麼時候來做美甲呢？',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3.5), // 3.5 hours ago
+          read: true,
+        },
+        {
+          id: '304',
+          senderId: user?.id || 'currentUser',
+          recipientId: 'business2',
+          content: '我想看看照片後再決定時間。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3.2), // 3.2 hours ago
+          read: true,
+        },
+        {
+          id: '305',
+          senderId: 'business2',
+          recipientId: user?.id || 'currentUser',
+          content: '請問您想預約哪個時段？',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3), // 3 hours ago
+          read: false,
+        },
+      ];
+    } else if (conversationId === '4') {
+      // Conversation with 專業SPA中心
+      mockMessages = [
+        {
+          id: '401',
+          senderId: user?.id || 'currentUser',
+          recipientId: 'business3',
+          content: '你們有提供全身按摩服務嗎？',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 30), // 30 hours ago
+          read: true,
+        },
+        {
+          id: '402',
+          senderId: 'business3',
+          recipientId: user?.id || 'currentUser',
+          content: '是的，我們提供多種按摩服務，包括瑞典式、泰式和香薰按摩。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 29), // 29 hours ago
+          read: true,
+        },
+        {
+          id: '403',
+          senderId: 'business3',
+          recipientId: user?.id || 'currentUser',
+          content: '我們有專業的按摩師提供服務，價格從NT$1800起，視服務時長和類型而定。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 28), // 28 hours ago
+          read: true,
+        },
+        {
+          id: '404',
+          senderId: user?.id || 'currentUser',
+          recipientId: 'business3',
+          content: '好的，謝謝資訊。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 26), // 26 hours ago
+          read: true,
+        },
+        {
+          id: '405',
+          senderId: 'business3',
+          recipientId: user?.id || 'currentUser',
+          content: '我們有新的優惠活動，詳情請見官網。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 24 hours ago
+          read: true,
+        },
+      ];
+    } else if (conversationId === '5') {
+      // Conversation with 自然美容
+      mockMessages = [
+        {
+          id: '501',
+          senderId: 'business4',
+          recipientId: user?.id || 'currentUser',
+          content: '您好，感謝您上次光臨我們的店面，希望您對我們的服務感到滿意。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4), // 4 days ago
+          read: true,
+        },
+        {
+          id: '502',
+          senderId: user?.id || 'currentUser',
+          recipientId: 'business4',
+          content: '服務很好，謝謝！',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3.9), // 3.9 days ago
+          read: true,
+        },
+        {
+          id: '503',
+          senderId: 'business4',
+          recipientId: user?.id || 'currentUser',
+          content: '我們現在推出了新的會員方案，如果您有興趣可以再來店裡諮詢。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3.5), // 3.5 days ago
+          read: true,
+        },
+        {
+          id: '504',
+          senderId: user?.id || 'currentUser',
+          recipientId: 'business4',
+          content: '好的，我考慮一下。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3.2), // 3.2 days ago
+          read: true,
+        },
+        {
+          id: '505',
+          senderId: 'business4',
+          recipientId: user?.id || 'currentUser',
+          content: '感謝您的光臨，希望您對我們的服務滿意。',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
+          read: true,
+        },
+      ];
+    } else {
+      // Default for new conversations
+      mockMessages = [];
+    }
+    
+    // Sort messages by timestamp
+    mockMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    
+    setMessages(mockMessages);
+    
+    // Mark conversation as read
+    setConversations(prev => 
+      prev.map(conv => 
+        conv.id === conversationId 
+        ? { ...conv, unreadCount: 0, lastMessage: conv.lastMessage ? { ...conv.lastMessage, read: true } : undefined } 
+        : conv
+      )
+    );
+  };
   
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedConversation) return;
     
-    const now = new Date();
-    const userId = 'current-user-id'; // current user's ID
-    
-    const newMessageObj: Message = {
-      id: `msg-${Date.now()}`,
-      senderId: userId,
+    // Create a new message
+    const message: Message = {
+      id: `new-${Date.now()}`,
+      senderId: user?.id || 'currentUser',
       recipientId: selectedConversation.participantId,
       content: newMessage,
-      timestamp: now,
+      timestamp: new Date(),
       read: false,
     };
     
-    setMessages([...messages, newMessageObj]);
-    setNewMessage('');
+    // Add message to the conversation
+    setMessages(prev => [...prev, message]);
     
-    // Update conversation last message
-    setConversations(
-      conversations.map(conv => 
-        conv.id === selectedConversation.id
-          ? {
-              ...conv,
-              lastMessage: newMessage,
-              lastMessageTime: now,
+    // Update last message in conversation
+    setConversations(prev => 
+      prev.map(conv => 
+        conv.id === selectedConversation.id 
+        ? { 
+            ...conv, 
+            lastMessage: {
+              content: newMessage,
+              timestamp: new Date(),
+              isFromMe: true,
+              read: false,
             }
-          : conv
+          } 
+        : conv
       )
     );
     
+    // Clear input
+    setNewMessage('');
+    
+    // In a real app, you would send this message to your backend
     toast({
-      title: "訊息已送出",
-      description: "您的訊息已成功送出。",
+      title: "訊息已發送",
+      description: "訊息已成功發送",
     });
   };
   
-  const handleSelectConversation = (conversation: Conversation) => {
+  const handleConversationSelect = (conversation: Conversation) => {
     setSelectedConversation(conversation);
-    setMessages(generateMockMessages(conversation.participantId));
+    loadMessages(conversation.id);
+  };
+  
+  const filteredConversations = conversations.filter(
+    conv => conv.participantName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  const paginatedConversations = filteredConversations.slice((page - 1) * 10, page * 10);
+  
+  const handlePrevPage = () => {
+    if (page > 1) setPage(page - 1);
+  };
+  
+  const handleNextPage = () => {
+    if (page < totalPages) setPage(page + 1);
+  };
+  
+  const formatMessageDate = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const day = 24 * 60 * 60 * 1000;
     
-    // Mark as read
-    if (conversation.unreadCount > 0) {
-      setConversations(
-        conversations.map(conv => 
-          conv.id === conversation.id
-            ? { ...conv, unreadCount: 0 }
-            : conv
-        )
-      );
+    if (diff < 24 * 60 * 60 * 1000) {
+      // Today, show time
+      return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+    } else if (diff < 2 * day) {
+      // Yesterday
+      return `昨天 ${date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}`;
+    } else if (diff < 7 * day) {
+      // Within a week
+      const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+      return `${days[date.getDay()]} ${date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}`;
+    } else {
+      // More than a week
+      return date.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' });
     }
   };
   
-  const formatMessageTime = (date: Date) => {
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffSec = Math.floor(diffMs / 1000);
-    const diffMin = Math.floor(diffSec / 60);
-    const diffHour = Math.floor(diffMin / 60);
-    const diffDay = Math.floor(diffHour / 24);
-    
-    if (diffSec < 60) return '剛剛';
-    if (diffMin < 60) return `${diffMin}分鐘前`;
-    if (diffHour < 24) return `${diffHour}小時前`;
-    if (diffDay < 7) return `${diffDay}天前`;
-    
-    return date.toLocaleDateString();
-  };
-  
-  const handleAttachImage = () => {
-    toast({
-      title: "功能開發中",
-      description: "附加圖片功能即將推出。",
-    });
-  };
-  
-  const handleAttachFile = () => {
-    toast({
-      title: "功能開發中",
-      description: "附加檔案功能即將推出。",
-    });
-  };
-  
-  const handleCall = () => {
-    toast({
-      title: "功能開發中",
-      description: "通話功能即將推出。",
-    });
+  const getParticipantIcon = (type: 'user' | 'business' | 'admin') => {
+    switch (type) {
+      case 'admin':
+        return <User className="h-4 w-4 text-blue-500" />;
+      case 'business':
+        return <Store className="h-4 w-4 text-purple-500" />;
+      default:
+        return <User className="h-4 w-4 text-gray-500" />;
+    }
   };
   
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen pt-16 bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center mb-6">
-            <button 
-              onClick={() => navigate('/')} 
-              className="mr-4 text-beauty-muted hover:text-beauty-dark transition-colors"
-            >
-              <ChevronLeft size={24} />
-            </button>
-            <h1 className="text-3xl font-bold">訊息中心</h1>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Conversations List */}
-            <div className="md:col-span-1 bg-white rounded-lg shadow-sm overflow-hidden">
-              <div className="p-4">
-                <div className="relative mb-4">
-                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-beauty-muted" size={16} />
-                  <Input 
-                    placeholder="搜尋對話..." 
-                    className="pl-10"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                
-                <ScrollArea className="h-[500px] pr-3">
-                  <div className="space-y-1">
-                    {filteredConversations.map(conversation => (
-                      <div 
-                        key={conversation.id}
-                        className={`flex items-start p-3 rounded-md cursor-pointer transition-colors hover:bg-gray-100 ${
-                          selectedConversation?.id === conversation.id ? 'bg-beauty-primary/10' : ''
-                        }`}
-                        onClick={() => handleSelectConversation(conversation)}
-                      >
-                        <div className="relative">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={conversation.participantAvatar} alt={conversation.participantName} />
-                            <AvatarFallback>{conversation.participantName[0]}</AvatarFallback>
-                          </Avatar>
-                          {conversation.unreadCount > 0 && (
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                              {conversation.unreadCount}
-                            </span>
-                          )}
-                        </div>
-                        
-                        <div className="ml-3 flex-1 min-w-0">
-                          <div className="flex justify-between">
-                            <h3 className="font-medium text-sm">{conversation.participantName}</h3>
-                            <span className="text-xs text-beauty-muted">
-                              {formatMessageTime(conversation.lastMessageTime)}
-                            </span>
-                          </div>
-                          <div className="flex items-center">
-                            <Badge 
-                              variant="outline" 
-                              className={`mr-2 px-1 py-0 text-[10px] ${
-                                conversation.participantType === 'admin' 
-                                  ? 'bg-purple-100 text-purple-800 border-purple-200' 
-                                  : conversation.participantType === 'business'
-                                    ? 'bg-blue-100 text-blue-800 border-blue-200'
-                                    : 'bg-gray-100 text-gray-800 border-gray-200'
-                              }`}
-                            >
-                              {conversation.participantType === 'admin' 
-                                ? '系統管理員' 
-                                : conversation.participantType === 'business' 
-                                  ? '商家' 
-                                  : '用戶'}
-                            </Badge>
-                            <p className="text-xs text-beauty-muted truncate">
-                              {conversation.lastMessage}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {filteredConversations.length === 0 && (
-                      <div className="p-4 text-center text-beauty-muted">
-                        沒有找到符合的對話
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
+    <div className="min-h-screen bg-gray-50 pt-16">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-6 flex items-center">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="mr-2"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            返回
+          </Button>
+          <h1 className="text-2xl font-bold">訊息中心</h1>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col md:flex-row">
+          {/* Conversation List */}
+          <div className="w-full md:w-1/3 border-r">
+            <div className="p-4 border-b">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="搜尋對話"
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
             </div>
             
-            {/* Messages Panel */}
-            <div className="md:col-span-2 bg-white rounded-lg shadow-sm overflow-hidden flex flex-col h-[600px]">
-              {selectedConversation ? (
-                <>
-                  {/* Conversation Header */}
-                  <div className="p-4 border-b flex items-center justify-between">
+            <div className="overflow-auto h-[calc(100vh-250px)]">
+              {paginatedConversations.length > 0 ? (
+                paginatedConversations.map((conversation) => (
+                  <div 
+                    key={conversation.id}
+                    className={`p-4 border-b cursor-pointer transition-colors hover:bg-gray-50 ${
+                      selectedConversation?.id === conversation.id ? 'bg-gray-50' : ''
+                    }`}
+                    onClick={() => handleConversationSelect(conversation)}
+                  >
                     <div className="flex items-center">
-                      <Avatar className="h-10 w-10 mr-3">
-                        <AvatarImage src={selectedConversation.participantAvatar} alt={selectedConversation.participantName} />
-                        <AvatarFallback>{selectedConversation.participantName[0]}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="font-medium">{selectedConversation.participantName}</h3>
-                        <Badge 
-                          variant="outline" 
-                          className={`px-1.5 py-0 text-[10px] ${
-                            selectedConversation.participantType === 'admin' 
-                              ? 'bg-purple-100 text-purple-800 border-purple-200' 
-                              : selectedConversation.participantType === 'business'
-                                ? 'bg-blue-100 text-blue-800 border-blue-200'
-                                : 'bg-gray-100 text-gray-800 border-gray-200'
-                          }`}
-                        >
-                          {selectedConversation.participantType === 'admin' 
-                            ? '系統管理員' 
-                            : selectedConversation.participantType === 'business' 
-                              ? '商家' 
-                              : '用戶'}
-                        </Badge>
+                      <div className="relative">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={conversation.participantAvatar} />
+                          <AvatarFallback className="bg-beauty-primary/10 text-beauty-primary">
+                            {getParticipantIcon(conversation.participantType)}
+                          </AvatarFallback>
+                        </Avatar>
+                        {conversation.unreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {conversation.unreadCount}
+                          </span>
+                        )}
+                      </div>
+                      <div className="ml-4 flex-1 min-w-0">
+                        <div className="flex justify-between items-center">
+                          <h3 className="font-medium truncate">{conversation.participantName}</h3>
+                          {conversation.lastMessage && (
+                            <span className="text-xs text-gray-400">
+                              {formatMessageDate(conversation.lastMessage.timestamp)}
+                            </span>
+                          )}
+                        </div>
+                        {conversation.lastMessage ? (
+                          <p className={`text-sm truncate ${conversation.unreadCount > 0 ? 'font-medium' : 'text-gray-500'}`}>
+                            {conversation.lastMessage.isFromMe ? '你: ' : ''}{conversation.lastMessage.content}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-gray-400 italic">無訊息</p>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center">
-                      <Button variant="ghost" size="icon" className="text-beauty-muted hover:text-beauty-primary" onClick={handleCall}>
-                        <Phone size={18} />
-                      </Button>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-beauty-muted hover:text-beauty-primary">
-                            <Info size={18} />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80" align="end">
-                          <div className="space-y-2">
-                            <h3 className="font-medium">對話資訊</h3>
-                            <div className="flex items-center">
-                              <Avatar className="h-10 w-10 mr-3">
-                                <AvatarImage src={selectedConversation.participantAvatar} alt={selectedConversation.participantName} />
-                                <AvatarFallback>{selectedConversation.participantName[0]}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <div className="font-medium">{selectedConversation.participantName}</div>
-                                <div className="text-xs text-beauty-muted">
-                                  {selectedConversation.participantType === 'admin' 
-                                    ? '系統管理員' 
-                                    : selectedConversation.participantType === 'business' 
-                                      ? '商家' 
-                                      : '用戶'}
-                                </div>
-                              </div>
-                            </div>
-                            <Separator />
-                            <div className="space-y-1">
-                              <Button variant="outline" size="sm" className="w-full justify-start">
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                新增到聯絡人
-                              </Button>
-                              {selectedConversation.participantType === 'business' && (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="w-full justify-start"
-                                  onClick={() => navigate(`/business/${selectedConversation.participantId}`)}
-                                >
-                                  <Store className="h-4 w-4 mr-2" />
-                                  查看商家資訊
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-beauty-muted hover:text-beauty-primary">
-                            <MoreVertical size={18} />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>標記為已讀</DropdownMenuItem>
-                          <DropdownMenuItem>靜音通知</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">封鎖</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
                   </div>
-                  
-                  {/* Messages List */}
-                  <ScrollArea className="flex-1 p-4">
-                    <div className="space-y-4">
-                      {messages.map((message, index) => {
-                        const isCurrentUser = message.senderId === 'current-user-id';
-                        const showDateSeparator = index === 0 || 
-                          new Date(message.timestamp).toDateString() !== new Date(messages[index - 1].timestamp).toDateString();
-                        
-                        return (
-                          <div key={message.id}>
-                            {showDateSeparator && (
-                              <div className="text-center my-4">
-                                <span className="text-xs bg-gray-100 text-beauty-muted px-2 py-1 rounded-full">
-                                  {new Date(message.timestamp).toLocaleDateString()}
-                                </span>
-                              </div>
-                            )}
-                            
-                            <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
-                              {!isCurrentUser && (
-                                <Avatar className="h-8 w-8 mr-2 mt-1">
-                                  <AvatarImage 
-                                    src={selectedConversation.participantAvatar} 
-                                    alt={selectedConversation.participantName} 
-                                  />
-                                  <AvatarFallback>{selectedConversation.participantName[0]}</AvatarFallback>
-                                </Avatar>
-                              )}
-                              
-                              <div className={`max-w-[70%] space-y-1`}>
-                                <div className={`rounded-lg p-3 ${
-                                  isCurrentUser 
-                                    ? 'bg-beauty-primary text-white rounded-tr-none' 
-                                    : 'bg-gray-100 text-gray-800 rounded-tl-none'
-                                }`}>
-                                  {message.content.split('\n').map((line, i) => (
-                                    <div key={i}>{line}</div>
-                                  ))}
-                                  
-                                  {message.attachment && (
-                                    <div className="mt-2">
-                                      {message.attachment.type === 'image' ? (
-                                        <div className="mt-2">
-                                          <img 
-                                            src={message.attachment.url} 
-                                            alt={message.attachment.name}
-                                            className="max-w-full rounded-md cursor-pointer hover:opacity-90 transition-opacity"
-                                          />
-                                          <div className="text-xs mt-1 opacity-70">{message.attachment.name}</div>
-                                        </div>
-                                      ) : (
-                                        <div className="flex items-center bg-black/10 rounded-md p-2 mt-1">
-                                          <File size={16} className="mr-2" />
-                                          <span className="text-sm truncate">{message.attachment.name}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                                
-                                <div className="text-xs text-beauty-muted">
-                                  {formatMessageTime(message.timestamp)}
-                                  {isCurrentUser && (
-                                    <span className="ml-1">
-                                      {message.read ? '• 已讀' : '• 已送達'}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                      <div ref={messagesEndRef} />
-                    </div>
-                  </ScrollArea>
-                  
-                  {/* Message Input */}
-                  <div className="p-4 border-t">
-                    <div className="flex items-end gap-2">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-beauty-muted hover:text-beauty-primary">
-                            <Paperclip size={20} />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-48" side="top" align="start">
-                          <div className="space-y-2">
-                            <Button 
-                              variant="outline" 
-                              className="w-full justify-start" 
-                              onClick={handleAttachImage}
-                            >
-                              <Image size={16} className="mr-2" />
-                              附加圖片
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              className="w-full justify-start"
-                              onClick={handleAttachFile}
-                            >
-                              <File size={16} className="mr-2" />
-                              附加檔案
-                            </Button>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      <div className="flex-1">
-                        <Textarea 
-                          placeholder="輸入訊息..." 
-                          className="min-h-[80px] resize-none"
-                          value={newMessage}
-                          onChange={(e) => setNewMessage(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSendMessage();
-                            }
-                          }}
-                        />
-                      </div>
-                      <Button 
-                        className="bg-beauty-primary hover:bg-beauty-primary/90"
-                        onClick={handleSendMessage}
-                        disabled={!newMessage.trim()}
-                      >
-                        <Send size={20} />
-                      </Button>
-                    </div>
-                  </div>
-                </>
+                ))
               ) : (
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-beauty-muted mb-4">選擇一個對話或開始新的對話</div>
-                    <Button 
-                      variant="outline"
-                      onClick={() => navigate('/businesses')}
-                    >
-                      瀏覽商家
-                    </Button>
-                  </div>
+                <div className="p-8 text-center text-gray-500">
+                  沒有符合的對話
                 </div>
               )}
             </div>
+            
+            {filteredConversations.length > 10 && (
+              <div className="p-4 border-t flex justify-between items-center">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handlePrevPage}
+                  disabled={page === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-gray-500">
+                  第 {page} 頁，共 {totalPages} 頁
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={page === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+          
+          {/* Message View */}
+          <div className="w-full md:w-2/3 flex flex-col">
+            {selectedConversation ? (
+              <>
+                <div className="p-4 border-b flex items-center">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={selectedConversation.participantAvatar} />
+                    <AvatarFallback className="bg-beauty-primary/10 text-beauty-primary">
+                      {selectedConversation.participantName.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="ml-3">
+                    <h3 className="font-medium">{selectedConversation.participantName}</h3>
+                    <div className="flex items-center">
+                      {getParticipantIcon(selectedConversation.participantType)}
+                      <span className="text-xs text-gray-500 ml-1">
+                        {selectedConversation.participantType === 'admin' ? '系統管理員' : 
+                         selectedConversation.participantType === 'business' ? '商家' : '用戶'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-auto p-4 flex flex-col space-y-4 h-[calc(100vh-350px)]">
+                  {messages.length > 0 ? (
+                    messages.map((message) => {
+                      const isFromMe = message.senderId === (user?.id || 'currentUser');
+                      
+                      return (
+                        <div 
+                          key={message.id} 
+                          className={`flex ${isFromMe ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div 
+                            className={`max-w-[75%] rounded-lg p-3 ${
+                              isFromMe 
+                              ? 'bg-beauty-primary text-white' 
+                              : 'bg-gray-100 text-gray-800'
+                            }`}
+                          >
+                            <p className="text-sm">{message.content}</p>
+                            <div 
+                              className={`text-xs mt-1 ${
+                                isFromMe ? 'text-white/70' : 'text-gray-500'
+                              }`}
+                            >
+                              {formatMessageDate(message.timestamp)}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center text-gray-500">
+                        <p>還沒有訊息</p>
+                        <p className="text-sm">發送一條訊息開始對話吧</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="p-4 border-t">
+                  <div className="flex">
+                    <Input
+                      placeholder="輸入訊息..."
+                      className="flex-1"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                    />
+                    <Button 
+                      className="ml-2"
+                      onClick={handleSendMessage}
+                      disabled={!newMessage.trim()}
+                    >
+                      <Send className="h-4 w-4 mr-1" />
+                      發送
+                    </Button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center p-8">
+                <div className="text-center text-gray-500">
+                  <p className="text-lg font-medium mb-2">選擇一個對話</p>
+                  <p>從左側列表選擇一個對話開始聊天</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
-      <Footer />
-    </>
+    </div>
   );
 };
 
