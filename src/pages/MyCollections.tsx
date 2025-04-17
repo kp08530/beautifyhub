@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Folder, FolderPlus, Edit2, Trash2, X, Check, Heart, MessageCircle, Plus, ChevronLeft, Store, BookOpen, Tabs } from 'lucide-react';
+import { Folder, FolderPlus, Edit2, Trash2, X, Check, Heart, MessageCircle, Plus, ChevronLeft, Store, BookOpen } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs as UITabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Collection type
 interface Collection {
@@ -285,7 +285,7 @@ const MyCollections = () => {
           <h1 className="text-3xl font-bold">我的集錦</h1>
         </div>
         
-        <UITabs value={activeTab} onValueChange={(value) => setActiveTab(value as "portfolio" | "business")} className="mb-6">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "portfolio" | "business")} className="mb-6">
           <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="portfolio" className="flex items-center">
               <BookOpen className="mr-2 h-4 w-4" />
@@ -296,7 +296,7 @@ const MyCollections = () => {
               收藏商家
             </TabsTrigger>
           </TabsList>
-        </UITabs>
+        </Tabs>
         
         <TabsContent value={activeTab} forceMount={true} hidden={activeTab !== "portfolio"}>
           <div className="flex flex-col md:flex-row gap-8">

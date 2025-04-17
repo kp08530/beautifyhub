@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { SearchIcon, Send, Paperclip, ChevronLeft, Info, MoreVertical, Image, File, UserPlus, Phone } from 'lucide-react';
+import { SearchIcon, Send, Paperclip, ChevronLeft, Info, MoreVertical, Image, File, UserPlus, Phone, Store } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';

@@ -57,6 +57,8 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { zhTW } from "date-fns/locale";
 
+type NotificationStatus = "草稿" | "已發送" | "已排程";
+
 interface Notification {
   id: string | number;
   title: string;
@@ -71,7 +73,7 @@ interface Notification {
     name: string;
   };
   createdAt: Date;
-  status: "草稿" | "已發送" | "已排程";
+  status: NotificationStatus;
 }
 
 const NotificationsPage = () => {
@@ -140,7 +142,7 @@ const NotificationsPage = () => {
     recipients: [],
   });
 
-  const statuses = [
+  const statuses: {value: NotificationStatus, label: string}[] = [
     { value: "草稿", label: "草稿" },
     { value: "已發送", label: "已發送" },
     { value: "已排程", label: "已排程" },
@@ -190,6 +192,8 @@ const NotificationsPage = () => {
       return;
     }
     
+    const status: NotificationStatus = save ? "草稿" : formData.schedule ? "已排程" : "已發送";
+    
     const newNotification: Notification = {
       id: Date.now(),
       title: formData.title,
@@ -199,7 +203,7 @@ const NotificationsPage = () => {
       schedule: formData.schedule,
       attachment: formData.attachment,
       createdAt: new Date(),
-      status: save ? "草稿" : formData.schedule ? "已排程" : "已發送",
+      status: status,
       scheduleSent: formData.schedule ? false : undefined,
     };
     
@@ -229,6 +233,8 @@ const NotificationsPage = () => {
       return;
     }
     
+    const status: NotificationStatus = save ? "草稿" : formData.schedule ? "已排程" : "已發送";
+    
     const updatedNotifications = notifications.map(notification => 
       notification.id === currentNotification.id
         ? {
@@ -239,7 +245,7 @@ const NotificationsPage = () => {
             recipients: formData.recipients,
             schedule: formData.schedule,
             attachment: formData.attachment,
-            status: save ? "草稿" : formData.schedule ? "已排程" : "已發送",
+            status: status,
             scheduleSent: formData.schedule ? false : undefined,
           }
         : notification
