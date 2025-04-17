@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, UserPlus, Pencil, Trash2, ToggleLeft, ToggleRight } from "lucide-react";
+import { Search, UserPlus, Pencil, Trash2, ToggleLeft, ToggleRight, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { UserManagementDialog } from "@/components/dashboard/UserManagementDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +26,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { UserRole } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface User {
   id: string;
@@ -43,7 +52,7 @@ const UsersPage = () => {
     { id: "2", name: "李小花", email: "lee@example.com", role: "business", status: "活躍" },
     { id: "3", name: "陳大偉", email: "chen@example.com", role: "user", status: "停用" },
     { id: "4", name: "林美麗", email: "lin@example.com", role: "business", status: "活躍" },
-    { id: "5", name: "張志明", email: "zhang@example.com", role: "user", status: "活躍" },
+    { id: "5", name: "張志明", email: "zhang@example.com", role: "admin", status: "活躍" },
   ]);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -51,11 +60,19 @@ const UsersPage = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
+  const [roleFilter, setRoleFilter] = useState<string[]>([]);
 
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    // Text search filter
+    const matchesSearchTerm = 
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Role filter
+    const matchesRoleFilter = roleFilter.length === 0 || roleFilter.includes(user.role);
+    
+    return matchesSearchTerm && matchesRoleFilter;
+  });
 
   const handleAddUser = (userData: {
     name: string;
@@ -133,6 +150,18 @@ const UsersPage = () => {
     });
   };
 
+  const toggleRoleFilter = (role: string) => {
+    setRoleFilter(prev => 
+      prev.includes(role)
+        ? prev.filter(r => r !== role)
+        : [...prev, role]
+    );
+  };
+
+  const clearRoleFilter = () => {
+    setRoleFilter([]);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -151,14 +180,50 @@ const UsersPage = () => {
           <CardHeader className="pb-3">
             <div className="flex justify-between items-center">
               <CardTitle>用戶列表</CardTitle>
-              <div className="relative w-64">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="搜尋用戶..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+              <div className="flex items-center gap-3">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 gap-1">
+                      <Filter className="h-4 w-4" />
+                      {roleFilter.length > 0 ? `已篩選 ${roleFilter.length}` : "篩選角色"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>角色篩選</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuCheckboxItem
+                      checked={roleFilter.includes("admin")}
+                      onCheckedChange={() => toggleRoleFilter("admin")}
+                    >
+                      管理員
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={roleFilter.includes("business")}
+                      onCheckedChange={() => toggleRoleFilter("business")}
+                    >
+                      商家
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuCheckboxItem
+                      checked={roleFilter.includes("user")}
+                      onCheckedChange={() => toggleRoleFilter("user")}
+                    >
+                      用戶
+                    </DropdownMenuCheckboxItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={clearRoleFilter}>
+                      清除篩選
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <div className="relative w-64">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="搜尋用戶..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -181,7 +246,15 @@ const UsersPage = () => {
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
-                      {user.role === "admin" ? "管理員" : user.role === "business" ? "商家" : "用戶"}
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        user.role === "admin" 
+                          ? "bg-purple-100 text-purple-800" 
+                          : user.role === "business" 
+                            ? "bg-blue-100 text-blue-800" 
+                            : "bg-gray-100 text-gray-800"
+                      }`}>
+                        {user.role === "admin" ? "管理員" : user.role === "business" ? "商家" : "用戶"}
+                      </span>
                     </TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs ${

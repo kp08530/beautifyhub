@@ -13,6 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { UserRole } from "@/contexts/AuthContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface UserFormData {
   id?: string;
@@ -34,7 +41,9 @@ interface UserManagementDialogProps {
     status: string;
   };
   onSave: (userData: UserFormData) => void;
-  mode: "add" | "edit";
+  mode: "add" | "edit" | "assign";
+  businessId?: string;
+  businessName?: string;
 }
 
 export function UserManagementDialog({
@@ -43,6 +52,8 @@ export function UserManagementDialog({
   user,
   onSave,
   mode,
+  businessId,
+  businessName,
 }: UserManagementDialogProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState<UserFormData>({
@@ -50,12 +61,16 @@ export function UserManagementDialog({
     name: user?.name || "",
     email: user?.email || "",
     password: "",
-    role: (user?.role as UserRole) || "user",
+    role: (user?.role as UserRole) || (mode === "assign" ? "business" : "user"),
     status: (user?.status as "活躍" | "停用") || "活躍",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -80,11 +95,19 @@ export function UserManagementDialog({
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{mode === "add" ? "新增用戶" : "編輯用戶"}</DialogTitle>
+            <DialogTitle>
+              {mode === "add" 
+                ? "新增用戶" 
+                : mode === "edit" 
+                  ? "編輯用戶" 
+                  : `指派管理員到 ${businessName || "商家"}`}
+            </DialogTitle>
             <DialogDescription>
               {mode === "add" 
                 ? "填寫以下資訊以新增用戶" 
-                : "修改用戶資訊"}
+                : mode === "edit" 
+                  ? "修改用戶資訊" 
+                  : `設定用戶為 ${businessName || "商家"} 的管理員`}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -138,7 +161,7 @@ export function UserManagementDialog({
                 value={formData.password}
                 onChange={handleChange}
                 className="col-span-3"
-                placeholder={mode === "edit" ? "不變更請留空" : ""}
+                placeholder={mode === "edit" || mode === "assign" ? "不變更請留空" : ""}
                 required={mode === "add"}
               />
             </div>
@@ -146,39 +169,52 @@ export function UserManagementDialog({
               <Label htmlFor="role" className="text-right">
                 角色
               </Label>
-              <select
-                id="role"
+              <Select
                 name="role"
                 value={formData.role}
-                onChange={handleChange}
-                className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                onValueChange={(value) => handleSelectChange("role", value)}
               >
-                <option value="user">用戶</option>
-                <option value="business">商家</option>
-                <option value="admin">管理員</option>
-              </select>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="選擇角色" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">用戶</SelectItem>
+                  <SelectItem value="business">商家</SelectItem>
+                  {mode !== "assign" && <SelectItem value="admin">管理員</SelectItem>}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
-                狀態
-              </Label>
-              <select
-                id="status"
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                <option value="活躍">活躍</option>
-                <option value="停用">停用</option>
-              </select>
-            </div>
+            {mode !== "assign" && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="status" className="text-right">
+                  狀態
+                </Label>
+                <Select
+                  name="status"
+                  value={formData.status}
+                  onValueChange={(value) => handleSelectChange("status", value)}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="選擇狀態" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="活躍">活躍</SelectItem>
+                    <SelectItem value="停用">停用</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {mode === "assign" && (
+              <div className="text-sm text-muted-foreground mt-2">
+                此操作將授予用戶管理 {businessName || "該商家"} 的權限。
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               取消
             </Button>
-            <Button type="submit">{mode === "add" ? "新增" : "保存"}</Button>
+            <Button type="submit">{mode === "add" ? "新增" : mode === "edit" ? "保存" : "指派"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

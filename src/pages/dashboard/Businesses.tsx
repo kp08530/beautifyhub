@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, Store, Pencil, UserCog, Trash2, Check, X, ToggleLeft, ToggleRight } from "lucide-react";
+import { Search, Store, Pencil, UserCog, Trash2, Check, X, ToggleLeft, ToggleRight, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { BusinessManagementDialog } from "@/components/dashboard/BusinessManagementDialog";
 import { UserManagementDialog } from "@/components/dashboard/UserManagementDialog";
@@ -27,6 +27,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { UserRole } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface Business {
   id: string | number;
@@ -37,6 +46,7 @@ interface Business {
   status: string;
   email?: string;
   phone?: string;
+  businessType?: string;
 }
 
 const BusinessesPage = () => {
@@ -44,11 +54,11 @@ const BusinessesPage = () => {
   
   // Dummy data for demonstration
   const [businesses, setBusinesses] = useState<Business[]>([
-    { id: 1, name: "美麗髮廊", owner: "李小花", location: "台北市", services: 12, status: "已認證" },
-    { id: 2, name: "時尚美甲", owner: "張美美", location: "台中市", services: 8, status: "已認證" },
-    { id: 3, name: "專業SPA中心", owner: "林大明", location: "高雄市", services: 15, status: "審核中" },
-    { id: 4, name: "自然美容", owner: "王小敏", location: "台南市", services: 6, status: "已認證" },
-    { id: 5, name: "精緻美容中心", owner: "陳小華", location: "台北市", services: 10, status: "未認證" },
+    { id: 1, name: "美麗髮廊", owner: "李小花", location: "台北市", services: 12, status: "已認證", businessType: "hair" },
+    { id: 2, name: "時尚美甲", owner: "張美美", location: "台中市", services: 8, status: "已認證", businessType: "nail" },
+    { id: 3, name: "專業SPA中心", owner: "林大明", location: "高雄市", services: 15, status: "審核中", businessType: "spa" },
+    { id: 4, name: "自然美容", owner: "王小敏", location: "台南市", services: 6, status: "已認證", businessType: "skin" },
+    { id: 5, name: "精緻美容中心", owner: "陳小華", location: "台北市", services: 10, status: "未認證", businessType: "makeup" },
   ]);
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -58,12 +68,30 @@ const BusinessesPage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAssignAdminDialogOpen, setIsAssignAdminDialogOpen] = useState(false);
   const [currentBusiness, setCurrentBusiness] = useState<Business | undefined>(undefined);
+  const [typeFilter, setTypeFilter] = useState<string[]>([]);
 
-  const filteredBusinesses = businesses.filter(business => 
-    business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    business.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    business.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const businessTypes = [
+    { value: "hair", label: "美髮" },
+    { value: "skin", label: "美容" },
+    { value: "nail", label: "美甲" },
+    { value: "makeup", label: "彩妝" },
+    { value: "spa", label: "SPA" },
+    { value: "other", label: "其他" },
+  ];
+
+  const filteredBusinesses = businesses.filter(business => {
+    // Text search filter
+    const matchesSearchTerm = 
+      business.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      business.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      business.location.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Business type filter
+    const matchesTypeFilter = typeFilter.length === 0 || 
+      (business.businessType && typeFilter.includes(business.businessType));
+    
+    return matchesSearchTerm && matchesTypeFilter;
+  });
 
   const handleAddBusiness = (businessData: {
     name: string;
@@ -72,6 +100,7 @@ const BusinessesPage = () => {
     phone: string;
     location: string;
     description: string;
+    businessType: string;
     status: "已認證" | "審核中" | "未認證" | "停用";
   }) => {
     const newBusiness = {
@@ -83,6 +112,7 @@ const BusinessesPage = () => {
       status: businessData.status,
       email: businessData.email,
       phone: businessData.phone,
+      businessType: businessData.businessType,
     };
     
     setBusinesses([...businesses, newBusiness]);
@@ -101,6 +131,7 @@ const BusinessesPage = () => {
     phone: string;
     location: string;
     description: string;
+    businessType: string;
     status: "已認證" | "審核中" | "未認證" | "停用";
   }) => {
     if (!businessData.id) return;
@@ -115,6 +146,7 @@ const BusinessesPage = () => {
             status: businessData.status,
             email: businessData.email,
             phone: businessData.phone,
+            businessType: businessData.businessType,
           }
         : business
     ));
@@ -133,6 +165,7 @@ const BusinessesPage = () => {
     phone: string;
     location: string;
     description: string;
+    businessType: string;
     status: "已認證" | "審核中" | "未認證" | "停用";
   }) => {
     if (!businessData.id) return;
@@ -147,6 +180,7 @@ const BusinessesPage = () => {
             status: businessData.status,
             email: businessData.email,
             phone: businessData.phone,
+            businessType: businessData.businessType,
           }
         : business
     ));
@@ -207,6 +241,18 @@ const BusinessesPage = () => {
     });
   };
 
+  const toggleTypeFilter = (type: string) => {
+    setTypeFilter(prev => 
+      prev.includes(type)
+        ? prev.filter(t => t !== type)
+        : [...prev, type]
+    );
+  };
+
+  const clearTypeFilter = () => {
+    setTypeFilter([]);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -225,14 +271,41 @@ const BusinessesPage = () => {
           <CardHeader className="pb-3">
             <div className="flex justify-between items-center">
               <CardTitle>商家列表</CardTitle>
-              <div className="relative w-64">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="搜尋商家..."
-                  className="pl-8"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+              <div className="flex items-center gap-3">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 gap-1">
+                      <Filter className="h-4 w-4" />
+                      {typeFilter.length > 0 ? `已篩選 ${typeFilter.length}` : "篩選類型"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>營業類型篩選</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {businessTypes.map(type => (
+                      <DropdownMenuCheckboxItem
+                        key={type.value}
+                        checked={typeFilter.includes(type.value)}
+                        onCheckedChange={() => toggleTypeFilter(type.value)}
+                      >
+                        {type.label}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={clearTypeFilter}>
+                      清除篩選
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <div className="relative w-64">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="搜尋商家..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -242,6 +315,7 @@ const BusinessesPage = () => {
                 <TableRow>
                   <TableHead>ID</TableHead>
                   <TableHead>商家名稱</TableHead>
+                  <TableHead>營業類型</TableHead>
                   <TableHead>負責人</TableHead>
                   <TableHead>地點</TableHead>
                   <TableHead>服務數量</TableHead>
@@ -254,6 +328,9 @@ const BusinessesPage = () => {
                   <TableRow key={business.id.toString()}>
                     <TableCell>{business.id}</TableCell>
                     <TableCell>{business.name}</TableCell>
+                    <TableCell>
+                      {businessTypes.find(t => t.value === business.businessType)?.label || "未指定"}
+                    </TableCell>
                     <TableCell>{business.owner}</TableCell>
                     <TableCell>{business.location}</TableCell>
                     <TableCell>{business.services}</TableCell>
@@ -286,6 +363,7 @@ const BusinessesPage = () => {
                             setCurrentBusiness(business);
                             setIsAssignAdminDialogOpen(true);
                           }}
+                          title="指派管理員"
                         >
                           <UserCog className="h-4 w-4" />
                         </Button>
@@ -367,7 +445,9 @@ const BusinessesPage = () => {
           isOpen={isAssignAdminDialogOpen}
           onClose={() => setIsAssignAdminDialogOpen(false)}
           onSave={handleAssignAdmin}
-          mode="add"
+          mode="assign"
+          businessId={currentBusiness.id.toString()}
+          businessName={currentBusiness.name}
         />
       )}
 

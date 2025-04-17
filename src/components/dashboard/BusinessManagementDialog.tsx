@@ -13,6 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface BusinessFormData {
   id?: string;
@@ -22,6 +29,7 @@ interface BusinessFormData {
   phone: string;
   location: string;
   description: string;
+  businessType: string;
   status: "已認證" | "審核中" | "未認證" | "停用";
 }
 
@@ -38,10 +46,20 @@ interface BusinessManagementDialogProps {
     phone?: string;
     description?: string;
     services?: number;
+    businessType?: string;
   };
   onSave: (businessData: BusinessFormData) => void;
   mode: "add" | "edit" | "approve";
 }
+
+const businessTypes = [
+  { value: "hair", label: "美髮" },
+  { value: "skin", label: "美容" },
+  { value: "nail", label: "美甲" },
+  { value: "makeup", label: "彩妝" },
+  { value: "spa", label: "SPA" },
+  { value: "other", label: "其他" },
+];
 
 export function BusinessManagementDialog({
   isOpen,
@@ -59,6 +77,7 @@ export function BusinessManagementDialog({
     phone: business?.phone || "",
     location: business?.location || "",
     description: business?.description || "",
+    businessType: business?.businessType || "hair",
     status: (business?.status as "已認證" | "審核中" | "未認證" | "停用") || "審核中",
   });
 
@@ -66,6 +85,10 @@ export function BusinessManagementDialog({
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -134,6 +157,27 @@ export function BusinessManagementDialog({
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="businessType" className="text-right">
+                營業類型
+              </Label>
+              <Select
+                name="businessType"
+                value={formData.businessType}
+                onValueChange={(value) => handleSelectChange("businessType", value)}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="選擇營業類型" />
+                </SelectTrigger>
+                <SelectContent>
+                  {businessTypes.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="owner" className="text-right">
                 負責人
               </Label>
@@ -199,18 +243,21 @@ export function BusinessManagementDialog({
               <Label htmlFor="status" className="text-right">
                 狀態
               </Label>
-              <select
-                id="status"
+              <Select
                 name="status"
                 value={formData.status}
-                onChange={handleChange}
-                className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                onValueChange={(value) => handleSelectChange("status", value)}
               >
-                <option value="已認證">已認證</option>
-                <option value="審核中">審核中</option>
-                <option value="未認證">未認證</option>
-                <option value="停用">停用</option>
-              </select>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="選擇狀態" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="已認證">已認證</SelectItem>
+                  <SelectItem value="審核中">審核中</SelectItem>
+                  <SelectItem value="未認證">未認證</SelectItem>
+                  <SelectItem value="停用">停用</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
