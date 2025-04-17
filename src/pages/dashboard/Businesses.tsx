@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, Store, Pencil, UserCog, Trash2, Check, X, ToggleLeft, ToggleRight, Filter } from "lucide-react";
+import { Search, Store, Pencil, UserCog, Trash2, Check, X, ToggleLeft, ToggleRight, Filter, MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { BusinessManagementDialog } from "@/components/dashboard/BusinessManagementDialog";
 import { UserManagementDialog } from "@/components/dashboard/UserManagementDialog";
@@ -35,7 +35,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Badge, Avatar, AvatarImage, AvatarFallback, MoreHorizontal } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface Business {
   id: string | number;
@@ -74,6 +76,11 @@ const BusinessesPage = () => {
     id: string | number;
     name: string;
   } | null>(null);
+  
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
+  const [showDialog, setShowDialog] = useState(false);
+  const [businessToDelete, setBusinessToDelete] = useState<Business | null>(null);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   const businessTypes = [
     { value: "hair", label: "美髮" },
@@ -258,7 +265,7 @@ const BusinessesPage = () => {
     setTypeFilter([]);
   };
 
-  const handleAction = (action: string, business: any) => {
+  const handleAction = (action: string, business: Business) => {
     switch (action) {
       case "edit":
         setSelectedBusiness(business);
