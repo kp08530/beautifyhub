@@ -857,4 +857,420 @@ const BusinessProfile = () => {
                         <thead className="bg-gray-50 text-left">
                           <tr>
                             <th className="px-4 py-3 text-sm font-medium">服務名稱</th>
-                            <th className="px-4 py-3 text-sm font-medium">價格 (NT$)
+                            <th className="px-4 py-3 text-sm font-medium">價格 (NT$)</th>
+                            <th className="px-4 py-3 text-sm font-medium">服務時長 (分鐘)</th>
+                            <th className="px-4 py-3 text-sm font-medium">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {services.map(service => (
+                            <tr key={service.id}>
+                              <td className="px-4 py-4">{service.name}</td>
+                              <td className="px-4 py-4">{service.price}</td>
+                              <td className="px-4 py-4">{service.duration}</td>
+                              <td className="px-4 py-4">
+                                <button 
+                                  className="text-beauty-primary text-sm hover:underline"
+                                  onClick={() => openEditServiceDialog(service)}
+                                >
+                                  編輯
+                                </button>
+                                <button 
+                                  className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
+                                  onClick={() => handleServiceDelete(service.id)}
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+                
+                {activeTab === 'advertisements' && (
+                  <div>
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-2xl font-bold">廣告管理</h2>
+                      <button 
+                        className="beauty-button bg-beauty-primary hover:bg-beauty-primary/90 flex items-center"
+                        onClick={openAddAdDialog}
+                      >
+                        <Plus size={16} className="mr-2" />
+                        新增廣告
+                      </button>
+                    </div>
+                    
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50 text-left">
+                          <tr>
+                            <th className="px-4 py-3 text-sm font-medium">廣告標題</th>
+                            <th className="px-4 py-3 text-sm font-medium">開始日期</th>
+                            <th className="px-4 py-3 text-sm font-medium">結束日期</th>
+                            <th className="px-4 py-3 text-sm font-medium">狀態</th>
+                            <th className="px-4 py-3 text-sm font-medium">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {advertisements.map(ad => (
+                            <tr key={ad.id}>
+                              <td className="px-4 py-4">{ad.title}</td>
+                              <td className="px-4 py-4">{ad.startDate}</td>
+                              <td className="px-4 py-4">{ad.endDate}</td>
+                              <td className="px-4 py-4">
+                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                  ad.status === '審核中' 
+                                    ? 'bg-yellow-100 text-yellow-800' 
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {ad.status}
+                                </span>
+                              </td>
+                              <td className="px-4 py-4">
+                                <button 
+                                  className="text-beauty-primary text-sm hover:underline"
+                                  onClick={() => handleAdDelete(ad.id)}
+                                >
+                                  刪除
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+                
+                {activeTab === 'customers' && (
+                  <div>
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-2xl font-bold">客戶管理</h2>
+                      <input
+                        type="text"
+                        value={customerSearchTerm}
+                        onChange={(e) => setCustomerSearchTerm(e.target.value)}
+                        className="beauty-input w-40 mr-4"
+                      />
+                      <button 
+                        className="beauty-button bg-beauty-primary hover:bg-beauty-primary/90 flex items-center"
+                        onClick={() => viewCustomerDetails(customers[0])}
+                      >
+                        查看詳情
+                      </button>
+                    </div>
+                    
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-gray-50 text-left">
+                          <tr>
+                            <th className="px-4 py-3 text-sm font-medium">客戶名稱</th>
+                            <th className="px-4 py-3 text-sm font-medium">電話</th>
+                            <th className="px-4 py-3 text-sm font-medium">訪問次數</th>
+                            <th className="px-4 py-3 text-sm font-medium">最後訪問日期</th>
+                            <th className="px-4 py-3 text-sm font-medium">狀態</th>
+                            <th className="px-4 py-3 text-sm font-medium">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {filteredCustomers.map(customer => (
+                            <tr key={customer.id}>
+                              <td className="px-4 py-4">{customer.name}</td>
+                              <td className="px-4 py-4">{customer.phone}</td>
+                              <td className="px-4 py-4">{customer.visits}</td>
+                              <td className="px-4 py-4">{customer.lastVisit}</td>
+                              <td className="px-4 py-4">
+                                <Badge variant={customer.status === 'regular' ? 'default' : 'secondary'}>
+                                  {customer.status}
+                                </Badge>
+                              </td>
+                              <td className="px-4 py-4">
+                                <button 
+                                  className="text-beauty-primary text-sm hover:underline"
+                                  onClick={() => viewCustomerDetails(customer)}
+                                >
+                                  查看詳情
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+                
+                {activeTab === 'settings' && (
+                  <div>
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-2xl font-bold">帳戶設定</h2>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1">密碼</label>
+                        <input
+                          type="password"
+                          className="beauty-input w-full"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-1">驗證碼</label>
+                        <input
+                          type="text"
+                          className="beauty-input w-full"
+                        />
+                      </div>
+                      
+                      <div>
+                        <button 
+                          className="beauty-button bg-beauty-primary hover:bg-beauty-primary/90"
+                        >
+                          更新
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <Dialog open={serviceDialog.open} onOpenChange={(open) => setServiceDialog({ ...serviceDialog, open })}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{serviceDialog.mode === 'add' ? '新增服務項目' : '編輯服務項目'}</DialogTitle>
+            <DialogDescription>
+              {serviceDialog.mode === 'add' ? '請填寫新服務的詳細資訊' : '請修改服務的詳細資訊'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium">服務名稱</label>
+              <Input
+                id="name"
+                name="name"
+                value={newService.name}
+                onChange={handleServiceChange}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="price" className="text-sm font-medium">價格 (NT$)</label>
+              <Input
+                id="price"
+                name="price"
+                type="number"
+                value={newService.price}
+                onChange={handleServiceChange}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="duration" className="text-sm font-medium">服務時長 (分鐘)</label>
+              <Input
+                id="duration"
+                name="duration"
+                type="number"
+                value={newService.duration}
+                onChange={handleServiceChange}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="description" className="text-sm font-medium">服務描述</label>
+              <Input
+                id="description"
+                name="description"
+                value={newService.description}
+                onChange={handleServiceChange}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setServiceDialog({ ...serviceDialog, open: false })}>取消</Button>
+            <Button onClick={handleServiceSubmit}>{serviceDialog.mode === 'add' ? '新增' : '儲存'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={appointmentDialog.open} onOpenChange={(open) => setAppointmentDialog({ ...appointmentDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>預約詳情</DialogTitle>
+          </DialogHeader>
+          
+          {appointmentDialog.data && (
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-beauty-muted">客戶姓名</p>
+                <p className="font-medium">{appointmentDialog.data.customerName}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-beauty-muted">服務項目</p>
+                <p className="font-medium">{appointmentDialog.data.service}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-beauty-muted">預約日期</p>
+                <p className="font-medium">{appointmentDialog.data.date}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-beauty-muted">預約時間</p>
+                <p className="font-medium">{appointmentDialog.data.time}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm text-beauty-muted">狀態</p>
+                <Badge variant={appointmentDialog.data.status === 'confirmed' ? 'default' : 'secondary'}>
+                  {appointmentDialog.data.status === 'confirmed' ? '已確認' : '已完成'}
+                </Badge>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button onClick={() => setAppointmentDialog({ open: false, data: null })}>關閉</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={adDialog.open} onOpenChange={(open) => setAdDialog({ ...adDialog, open })}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{adDialog.mode === 'add' ? '新增廣告' : '編輯廣告'}</DialogTitle>
+            <DialogDescription>
+              {adDialog.mode === 'add' ? '請填寫新廣告的詳細資訊' : '請修改廣告的詳細資訊'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="adTitle" className="text-sm font-medium">廣告標題</label>
+              <Input
+                id="adTitle"
+                name="title"
+                value={newAd.title}
+                onChange={handleAdChange}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="startDate" className="text-sm font-medium">開始日期</label>
+              <Input
+                id="startDate"
+                name="startDate"
+                type="date"
+                value={newAd.startDate}
+                onChange={handleAdChange}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="endDate" className="text-sm font-medium">結束日期</label>
+              <Input
+                id="endDate"
+                name="endDate"
+                type="date"
+                value={newAd.endDate}
+                onChange={handleAdChange}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">廣告圖片</label>
+              <div className="bg-gray-100 rounded-md p-4 text-center">
+                <p className="text-sm text-beauty-muted">上傳功能尚未實現</p>
+                <p className="text-xs text-beauty-muted">將使用預設圖片</p>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAdDialog({ ...adDialog, open: false })}>取消</Button>
+            <Button onClick={handleAdSubmit}>{adDialog.mode === 'add' ? '送出申請' : '更新'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>確認刪除</DialogTitle>
+            <DialogDescription>
+              您確定要刪除這個{deleteDialog.type === 'service' ? '服務項目' : '廣告'}嗎？此操作無法復原。
+            </DialogDescription>
+          </DialogHeader>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialog({ open: false, type: '', id: '' })}>取消</Button>
+            <Button variant="destructive" onClick={confirmDelete}>確認刪除</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={showAddRestDayDialog} onOpenChange={setShowAddRestDayDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>新增特定休息日</DialogTitle>
+            <DialogDescription>
+              請選擇日期並填寫原因（選填）
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="restDate" className="text-sm font-medium">日期</label>
+              <Input
+                id="restDate"
+                type="date"
+                value={newRestDay.date}
+                onChange={(e) => setNewRestDay({ ...newRestDay, date: e.target.value })}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="restReason" className="text-sm font-medium">原因 (選填)</label>
+              <Input
+                id="restReason"
+                value={newRestDay.reason || ''}
+                onChange={(e) => setNewRestDay({ ...newRestDay, reason: e.target.value })}
+                placeholder="例如：店內裝修、國定假日等"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddRestDayDialog(false)}>取消</Button>
+            <Button onClick={handleAddRestDay}>新增</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      <CustomerDetailsDialog 
+        open={showCustomerDetails} 
+        onOpenChange={setShowCustomerDetails} 
+        customer={selectedCustomer} 
+      />
+    </div>
+  );
+};
+
+export default BusinessProfile;
