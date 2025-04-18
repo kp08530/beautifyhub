@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import Index from "./pages/Index";
@@ -72,7 +71,7 @@ function App() {
             <Route path="/appointments" element={<Appointments />} />
             <Route path="/business-advertisements" element={<BusinessAdvertisements />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/collections" element={<MyCollections />} />
+            <Route path="/my-collections" element={<MyCollections />} />
             <Route path="/messages" element={<Messages />} />
           </Route>
           
