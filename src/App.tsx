@@ -35,11 +35,13 @@ import Pricing from "./pages/Pricing";
 import ReportAnalysisPage from "./pages/dashboard/ReportAnalysis";
 import SystemLogsPage from "./pages/dashboard/SystemLogs";
 import DataManagementPage from "./pages/dashboard/DataManagement";
+import Navbar from "./components/Navbar";
 
 function App() {
   return (
     <Router>
       <AuthProvider>
+        <Navbar />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />

@@ -61,14 +61,14 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
-  const [currentRole, setCurrentRole] = useState<"admin" | "business">("admin");
+  const [currentRole, setCurrentRole] = useState<"admin" | "business">(user?.role === "business" ? "business" : "admin");
   const [currentRoleLevel, setCurrentRoleLevel] = useState<"super" | "normal">("super");
   const [notifications, setNotifications] = useState([
     { id: 1, title: "新商家申請", message: "有3家新商家等待審核", time: "10分鐘前", read: false },
@@ -80,6 +80,16 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     { id: 2, sender: "時尚美甲", message: "我們的廣告申請審核進度如何？", time: "2小時前", read: false },
     { id: 3, sender: "系統通知", message: "歡迎使用BeautifyHub管理系統", time: "1天前", read: true },
   ]);
+
+  // Update currentRole based on user role
+  useEffect(() => {
+    if (user?.role === "business") {
+      setCurrentRole("business");
+      setSelectedBusiness(user.name);
+    } else {
+      setCurrentRole("admin");
+    }
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -165,16 +175,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     toast({
       title: "幫助中心",
       description: "系統幫助文檔已打開，您可以在這裡找到使用指南和常見問題解答。",
-    });
-  };
-
-  const toggleRoleLevel = () => {
-    const newRoleLevel = currentRoleLevel === "super" ? "normal" : "super";
-    setCurrentRoleLevel(newRoleLevel);
-    
-    toast({
-      title: "權限切換",
-      description: `已切換為${newRoleLevel === "super" ? "最高" : "一般"}管理員權限`,
     });
   };
 
@@ -351,7 +351,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 {currentRoleLevel === "super" && (
                   <>
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={false}>
+                      <SidebarMenuButton asChild isActive={isActive("/dashboard/permissions")}>
                         <Link to="/dashboard/permissions">
                           <ShieldCheck />
                           <span>權限管理</span>
@@ -360,7 +360,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     </SidebarMenuItem>
                     
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={false}>
+                      <SidebarMenuButton asChild isActive={isActive("/dashboard/system-logs")}>
                         <Link to="/dashboard/system-logs">
                           <FileText />
                           <span>系統日誌</span>
@@ -369,8 +369,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     </SidebarMenuItem>
                     
                     <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={false}>
-                        <Link to="/dashboard/database">
+                      <SidebarMenuButton asChild isActive={isActive("/dashboard/data-management")}>
+                        <Link to="/dashboard/data-management">
                           <Database />
                           <span>數據管理</span>
                         </Link>
@@ -437,20 +437,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     </span>
                   </p>
                   <p className="text-xs text-beauty-muted">
-                    {currentRole === "admin" ? "admin@beautifyhub.com" : "business@example.com"}
+                    {user?.email}
                   </p>
                 </div>
               </div>
               <div className="space-y-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full justify-start"
-                  onClick={toggleRoleLevel}
-                >
-                  <ShieldCheck className="mr-2 h-4 w-4" />
-                  切換權限等級
-                </Button>
                 <Button variant="outline" className="w-full" onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   登出

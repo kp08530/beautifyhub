@@ -61,6 +61,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
   
   // Check for saved user on mount
   useEffect(() => {
@@ -97,6 +99,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         title: "登入成功",
         description: `歡迎回來，${userWithoutPassword.name}！`
       });
+      
+      // Redirect based on user role
+      if (userWithoutPassword.role === 'admin') {
+        navigate('/dashboard');
+      } else if (userWithoutPassword.role === 'business') {
+        navigate('/business-profile');
+      } else {
+        // Get the redirect path from location state or default to home
+        const from = location.state?.from || '/';
+        navigate(from);
+      }
       
       setIsLoading(false);
       return true;
@@ -149,11 +162,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       description: "歡迎加入 BeautifyHub！"
     });
     
+    navigate('/');
+    
     setIsLoading(false);
     return true;
   };
 
-  // Logout function with useNavigate hook moved to internal implementation
+  // Logout function
   const logout = () => {
     setUser(null);
     localStorage.removeItem('beautifyhub_user');
@@ -162,7 +177,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       description: "您已成功登出系統"
     });
     
-    // We'll handle navigation in the component that calls logout
+    navigate('/');
   };
 
   const value = {

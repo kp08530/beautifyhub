@@ -19,10 +19,11 @@ import {
   Star,
   Ban,
   FileText,
-  BarChart4
+  BarChart4,
+  Pencil,
+  Clipboard
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import Footer from '@/components/Footer';
 import { 
   Dialog, 
   DialogContent, 
@@ -116,6 +117,12 @@ interface DeleteDialogState {
   open: boolean;
   type: string;
   id: string;
+}
+
+interface NoteDialogState {
+  open: boolean;
+  customerId: string;
+  currentNote: string;
 }
 
 const mockBusiness: Business = {
@@ -248,6 +255,7 @@ const BusinessProfile = () => {
   const [newAd, setNewAd] = useState<Omit<Advertisement, 'id' | 'status'>>({ title: '', imageUrl: '/placeholder.svg', startDate: '', endDate: '' });
   const [adDialog, setAdDialog] = useState<AdDialogState>({ open: false, mode: 'add', data: null });
   const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>({ open: false, type: '', id: '' });
+  const [noteDialog, setNoteDialog] = useState<NoteDialogState>({ open: false, customerId: '', currentNote: '' });
   
   useEffect(() => {
     if (!isBusiness) {
@@ -445,6 +453,37 @@ const BusinessProfile = () => {
     setShowCustomerDetails(true);
   };
 
+  const openNoteDialog = (customer: Customer) => {
+    setNoteDialog({
+      open: true,
+      customerId: customer.id,
+      currentNote: customer.note || ''
+    });
+  };
+
+  const saveCustomerNote = (note: string) => {
+    const updatedCustomers = customers.map(customer => 
+      customer.id === noteDialog.customerId
+        ? { ...customer, note }
+        : customer
+    );
+    
+    setCustomers(updatedCustomers);
+    setNoteDialog({ open: false, customerId: '', currentNote: '' });
+    
+    toast({
+      title: "備註已更新",
+      description: "客戶備註已成功更新",
+    });
+  };
+
+  const editCustomer = (customer: Customer) => {
+    toast({
+      title: "編輯客戶",
+      description: `開始編輯 ${customer.name} 的資料`,
+    });
+  };
+
   const filteredCustomers = customers.filter(customer => 
     customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
     customer.phone.includes(customerSearchTerm)
@@ -561,34 +600,30 @@ const BusinessProfile = () => {
                   <div>
                     <div className="flex justify-between items-center mb-6">
                       <h2 className="text-2xl font-bold">店家資料</h2>
-                      <button 
-                        onClick={handleEditToggle}
-                        className="beauty-button-outline flex items-center"
-                      >
+                      <Button onClick={handleEditToggle}>
                         {editing ? (
                           <>
-                            <Save size={16} className="mr-2" />
-                            儲存資料
+                            <Save className="mr-2 h-4 w-4" />
+                            儲存
                           </>
                         ) : (
                           <>
-                            <Edit size={16} className="mr-2" />
-                            編輯資料
+                            <Edit className="mr-2 h-4 w-4" />
+                            編輯
                           </>
                         )}
-                      </button>
+                      </Button>
                     </div>
                     
                     {editing ? (
-                      <div className="space-y-6">
+                      <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium mb-1">店家名稱</label>
-                          <input
+                          <Input
                             type="text"
                             name="name"
                             value={editedBusiness.name}
                             onChange={handleBusinessChange}
-                            className="beauty-input w-full"
                           />
                         </div>
                         
@@ -598,191 +633,98 @@ const BusinessProfile = () => {
                             name="description"
                             value={editedBusiness.description}
                             onChange={handleBusinessChange}
-                            rows={3}
-                            className="beauty-input w-full"
-                          ></textarea>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-1">地址</label>
-                            <input
-                              type="text"
-                              name="address"
-                              value={editedBusiness.address}
-                              onChange={handleBusinessChange}
-                              className="beauty-input w-full"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium mb-1">電話</label>
-                            <input
-                              type="text"
-                              name="phone"
-                              value={editedBusiness.phone}
-                              onChange={handleBusinessChange}
-                              className="beauty-input w-full"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium mb-1">電子郵件</label>
-                            <input
-                              type="email"
-                              name="email"
-                              value={editedBusiness.email}
-                              onChange={handleBusinessChange}
-                              className="beauty-input w-full"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium mb-1">類別</label>
-                            <select
-                              name="categories"
-                              value={editedBusiness.categories[0]}
-                              onChange={(e) => setEditedBusiness(prev => ({
-                                ...prev,
-                                categories: [e.target.value, ...prev.categories.slice(1)]
-                              }))}
-                              className="beauty-input w-full"
-                            >
-                              <option value="美容">美容</option>
-                              <option value="美髮">美髮</option>
-                              <option value="美甲">美甲</option>
-                              <option value="護膚">護膚</option>
-                            </select>
-                          </div>
+                            className="beauty-input"
+                          />
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium mb-3">營業時間</label>
-                          <div className="space-y-3">
-                            {editedBusiness.openingHours.map((day, index) => (
-                              <div key={index} className="flex items-center">
-                                <span className="w-20">{day.day}</span>
-                                <select
-                                  value={day.hours === '休息' ? '休息' : '營業'}
-                                  onChange={(e) => handleOpeningHoursChange(
-                                    index,
-                                    'hours',
-                                    e.target.value === '休息' ? '休息' : '10:00 - 20:00'
-                                  )}
-                                  className="beauty-input mr-2"
-                                >
-                                  <option value="營業">營業</option>
-                                  <option value="休息">休息</option>
-                                </select>
-                                
-                                {day.hours !== '休息' && (
-                                  <input
-                                    type="text"
-                                    value={day.hours}
-                                    onChange={(e) => handleOpeningHoursChange(index, 'hours', e.target.value)}
-                                    className="beauty-input flex-1"
-                                    placeholder="例如：10:00 - 20:00"
-                                  />
-                                )}
-                              </div>
-                            ))}
-                          </div>
+                          <label className="block text-sm font-medium mb-1">地址</label>
+                          <Input
+                            type="text"
+                            name="address"
+                            value={editedBusiness.address}
+                            onChange={handleBusinessChange}
+                          />
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium mb-3">特定休息日</label>
-                          <div className="space-y-2 mb-2">
-                            {restDays.map((day) => (
-                              <div key={day.id} className="flex items-center justify-between p-2 border rounded-md">
-                                <div>
-                                  <span className="font-medium">{day.date}</span>
-                                  {day.reason && <span className="ml-2 text-sm text-beauty-muted">({day.reason})</span>}
-                                </div>
-                                <button
-                                  className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
-                                  onClick={() => handleDeleteRestDay(day.id)}
-                                >
-                                  <X size={16} />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setShowAddRestDayDialog(true)}
-                          >
-                            <Plus size={14} className="mr-1" />
-                            新增休息日
-                          </Button>
+                          <label className="block text-sm font-medium mb-1">電話</label>
+                          <Input
+                            type="text"
+                            name="phone"
+                            value={editedBusiness.phone}
+                            onChange={handleBusinessChange}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium mb-1">Email</label>
+                          <Input
+                            type="email"
+                            name="email"
+                            value={editedBusiness.email}
+                            onChange={handleBusinessChange}
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium mb-1">營業時間</label>
+                          {editedBusiness.openingHours.map((day, index) => (
+                            <div key={index} className="flex items-center gap-4 mb-2">
+                              <span className="w-16">{day.day}</span>
+                              <Input
+                                type="text"
+                                value={day.hours}
+                                onChange={(e) => handleOpeningHoursChange(index, 'hours', e.target.value)}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium mb-1">圖片 URL</label>
+                          <Input
+                            type="text"
+                            name="imageUrl"
+                            value={editedBusiness.imageUrl}
+                            onChange={handleBusinessChange}
+                          />
                         </div>
                       </div>
                     ) : (
-                      <div className="space-y-6">
+                      <div className="space-y-4">
                         <div>
-                          <h3 className="text-lg font-medium mb-2">基本資料</h3>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-sm text-beauty-muted">店家名稱</p>
-                              <p>{business.name}</p>
-                            </div>
-                            
-                            <div>
-                              <p className="text-sm text-beauty-muted">類別</p>
-                              <p>{business.categories.join(', ')}</p>
-                            </div>
-                            
-                            <div>
-                              <p className="text-sm text-beauty-muted">地址</p>
-                              <p>{business.address}</p>
-                            </div>
-                            
-                            <div>
-                              <p className="text-sm text-beauty-muted">電話</p>
-                              <p>{business.phone}</p>
-                            </div>
-                            
-                            <div>
-                              <p className="text-sm text-beauty-muted">電子郵件</p>
-                              <p>{business.email}</p>
-                            </div>
-                          </div>
+                          <p className="text-sm text-beauty-muted">店家名稱</p>
+                          <p className="font-medium">{business.name}</p>
                         </div>
                         
                         <div>
-                          <h3 className="text-lg font-medium mb-2">店家描述</h3>
+                          <p className="text-sm text-beauty-muted">店家描述</p>
                           <p>{business.description}</p>
                         </div>
                         
                         <div>
-                          <h3 className="text-lg font-medium mb-2">營業時間</h3>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            {business.openingHours.map((day, index) => (
-                              <div key={index} className="flex justify-between py-2 border-b border-gray-100 last:border-0">
-                                <span className="font-medium">{day.day}</span>
-                                <span className={day.hours === '休息' ? 'text-gray-400' : ''}>{day.hours}</span>
-                              </div>
-                            ))}
-                          </div>
+                          <p className="text-sm text-beauty-muted">地址</p>
+                          <p>{business.address}</p>
                         </div>
                         
                         <div>
-                          <h3 className="text-lg font-medium mb-2">特定休息日</h3>
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            {restDays.length > 0 ? (
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                {restDays.map((day) => (
-                                  <div key={day.id} className="flex items-center py-2 border-b border-gray-100 last:border-0">
-                                    <CalendarDays className="h-4 w-4 text-beauty-muted mr-2" />
-                                    <span className="font-medium">{day.date}</span>
-                                    {day.reason && <span className="ml-2 text-sm text-beauty-muted">({day.reason})</span>}
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-beauty-muted text-sm">尚未設定特定休息日</p>
-                            )}
-                          </div>
+                          <p className="text-sm text-beauty-muted">電話</p>
+                          <p>{business.phone}</p>
+                        </div>
+                        
+                        <div>
+                          <p className="text-sm text-beauty-muted">Email</p>
+                          <p>{business.email}</p>
+                        </div>
+                        
+                        <div>
+                          <p className="text-sm text-beauty-muted">營業時間</p>
+                          {business.openingHours.map((day, index) => (
+                            <p key={index}>
+                              {day.day}: {day.hours}
+                            </p>
+                          ))}
                         </div>
                       </div>
                     )}
@@ -791,15 +733,13 @@ const BusinessProfile = () => {
                 
                 {activeTab === 'appointments' && (
                   <div>
-                    <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-2xl font-bold">預約管理</h2>
-                    </div>
+                    <h2 className="text-2xl font-bold mb-6">預約管理</h2>
                     
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead className="bg-gray-50 text-left">
                           <tr>
-                            <th className="px-4 py-3 text-sm font-medium">客戶</th>
+                            <th className="px-4 py-3 text-sm font-medium">客戶名稱</th>
                             <th className="px-4 py-3 text-sm font-medium">服務項目</th>
                             <th className="px-4 py-3 text-sm font-medium">日期</th>
                             <th className="px-4 py-3 text-sm font-medium">時間</th>
@@ -816,20 +756,19 @@ const BusinessProfile = () => {
                               <td className="px-4 py-4">{appointment.time}</td>
                               <td className="px-4 py-4">
                                 <span className={`px-2 py-1 text-xs rounded-full ${
-                                  appointment.status === 'confirmed' 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : 'bg-gray-100 text-gray-800'
+                                  appointment.status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                                 }`}>
                                   {appointment.status === 'confirmed' ? '已確認' : '已完成'}
                                 </span>
                               </td>
                               <td className="px-4 py-4">
-                                <button 
-                                  className="text-beauty-primary text-sm hover:underline"
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
                                   onClick={() => viewAppointmentDetails(appointment)}
                                 >
-                                  詳情
-                                </button>
+                                  查看詳情
+                                </Button>
                               </td>
                             </tr>
                           ))}
@@ -843,49 +782,42 @@ const BusinessProfile = () => {
                   <div>
                     <div className="flex justify-between items-center mb-6">
                       <h2 className="text-2xl font-bold">服務項目</h2>
-                      <button 
-                        className="beauty-button bg-beauty-primary hover:bg-beauty-primary/90 flex items-center"
-                        onClick={openAddServiceDialog}
-                      >
-                        <Plus size={16} className="mr-2" />
+                      <Button onClick={openAddServiceDialog}>
+                        <Plus className="mr-2 h-4 w-4" />
                         新增服務
-                      </button>
+                      </Button>
                     </div>
                     
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gray-50 text-left">
-                          <tr>
-                            <th className="px-4 py-3 text-sm font-medium">服務名稱</th>
-                            <th className="px-4 py-3 text-sm font-medium">價格 (NT$)</th>
-                            <th className="px-4 py-3 text-sm font-medium">服務時長 (分鐘)</th>
-                            <th className="px-4 py-3 text-sm font-medium">操作</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {services.map(service => (
-                            <tr key={service.id}>
-                              <td className="px-4 py-4">{service.name}</td>
-                              <td className="px-4 py-4">{service.price}</td>
-                              <td className="px-4 py-4">{service.duration}</td>
-                              <td className="px-4 py-4">
-                                <button 
-                                  className="text-beauty-primary text-sm hover:underline"
-                                  onClick={() => openEditServiceDialog(service)}
-                                >
-                                  編輯
-                                </button>
-                                <button 
-                                  className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
-                                  onClick={() => handleServiceDelete(service.id)}
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {services.map(service => (
+                        <div key={service.id} className="bg-white rounded-lg shadow-sm p-4">
+                          <h3 className="text-lg font-medium">{service.name}</h3>
+                          <p className="text-beauty-muted text-sm mb-2">{service.description}</p>
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-sm text-beauty-muted">價格</p>
+                              <p className="font-medium">NT$ {service.price}</p>
+                            </div>
+                            <div>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => openEditServiceDialog(service)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                className="text-red-600 hover:text-red-800"
+                                onClick={() => handleServiceDelete(service.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -894,53 +826,49 @@ const BusinessProfile = () => {
                   <div>
                     <div className="flex justify-between items-center mb-6">
                       <h2 className="text-2xl font-bold">廣告管理</h2>
-                      <button 
-                        className="beauty-button bg-beauty-primary hover:bg-beauty-primary/90 flex items-center"
-                        onClick={openAddAdDialog}
-                      >
-                        <Plus size={16} className="mr-2" />
+                      <Button onClick={openAddAdDialog}>
+                        <Plus className="mr-2 h-4 w-4" />
                         新增廣告
-                      </button>
+                      </Button>
                     </div>
                     
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gray-50 text-left">
-                          <tr>
-                            <th className="px-4 py-3 text-sm font-medium">廣告標題</th>
-                            <th className="px-4 py-3 text-sm font-medium">開始日期</th>
-                            <th className="px-4 py-3 text-sm font-medium">結束日期</th>
-                            <th className="px-4 py-3 text-sm font-medium">狀態</th>
-                            <th className="px-4 py-3 text-sm font-medium">操作</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {advertisements.map(ad => (
-                            <tr key={ad.id}>
-                              <td className="px-4 py-4">{ad.title}</td>
-                              <td className="px-4 py-4">{ad.startDate}</td>
-                              <td className="px-4 py-4">{ad.endDate}</td>
-                              <td className="px-4 py-4">
-                                <span className={`px-2 py-1 text-xs rounded-full ${
-                                  ad.status === '審核中' 
-                                    ? 'bg-yellow-100 text-yellow-800' 
-                                    : 'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {ad.status}
-                                </span>
-                              </td>
-                              <td className="px-4 py-4">
-                                <button 
-                                  className="text-beauty-primary text-sm hover:underline"
-                                  onClick={() => handleAdDelete(ad.id)}
-                                >
-                                  刪除
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {advertisements.map(ad => (
+                        <div key={ad.id} className="bg-white rounded-lg shadow-sm p-4">
+                          <img 
+                            src={ad.imageUrl} 
+                            alt={ad.title} 
+                            className="w-full h-32 object-cover mb-2 rounded-md"
+                          />
+                          <h3 className="text-lg font-medium">{ad.title}</h3>
+                          <p className="text-beauty-muted text-sm">
+                            {ad.startDate} - {ad.endDate}
+                          </p>
+                          <Badge className="mt-2" variant={ad.status === '已核准' ? 'success' : 'secondary'}>
+                            {ad.status}
+                          </Badge>
+                          <div className="flex justify-end mt-4">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => {
+                                setNewAd({ ...ad, startDate: ad.startDate, endDate: ad.endDate });
+                                setAdDialog({ open: true, mode: 'edit', data: ad });
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              className="text-red-600 hover:text-red-800"
+                              onClick={() => handleAdDelete(ad.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -949,328 +877,12 @@ const BusinessProfile = () => {
                   <div>
                     <div className="flex justify-between items-center mb-6">
                       <h2 className="text-2xl font-bold">客戶管理</h2>
-                      <input
-                        type="text"
-                        value={customerSearchTerm}
-                        onChange={(e) => setCustomerSearchTerm(e.target.value)}
-                        className="beauty-input w-40 mr-4"
-                      />
-                      <button 
-                        className="beauty-button bg-beauty-primary hover:bg-beauty-primary/90 flex items-center"
-                        onClick={() => viewCustomerDetails(customers[0])}
-                      >
-                        查看詳情
-                      </button>
-                    </div>
-                    
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-gray-50 text-left">
-                          <tr>
-                            <th className="px-4 py-3 text-sm font-medium">客戶名稱</th>
-                            <th className="px-4 py-3 text-sm font-medium">電話</th>
-                            <th className="px-4 py-3 text-sm font-medium">訪問次數</th>
-                            <th className="px-4 py-3 text-sm font-medium">最後訪問日期</th>
-                            <th className="px-4 py-3 text-sm font-medium">狀態</th>
-                            <th className="px-4 py-3 text-sm font-medium">操作</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {filteredCustomers.map(customer => (
-                            <tr key={customer.id}>
-                              <td className="px-4 py-4">{customer.name}</td>
-                              <td className="px-4 py-4">{customer.phone}</td>
-                              <td className="px-4 py-4">{customer.visits}</td>
-                              <td className="px-4 py-4">{customer.lastVisit}</td>
-                              <td className="px-4 py-4">
-                                <Badge variant={customer.status === 'regular' ? 'default' : 'secondary'}>
-                                  {customer.status}
-                                </Badge>
-                              </td>
-                              <td className="px-4 py-4">
-                                <button 
-                                  className="text-beauty-primary text-sm hover:underline"
-                                  onClick={() => viewCustomerDetails(customer)}
-                                >
-                                  查看詳情
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-                
-                {activeTab === 'settings' && (
-                  <div>
-                    <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-2xl font-bold">帳戶設定</h2>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">密碼</label>
-                        <input
-                          type="password"
-                          className="beauty-input w-full"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium mb-1">驗證碼</label>
-                        <input
-                          type="text"
-                          className="beauty-input w-full"
-                        />
-                      </div>
-                      
-                      <div>
-                        <button 
-                          className="beauty-button bg-beauty-primary hover:bg-beauty-primary/90"
-                        >
-                          更新
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <Dialog open={serviceDialog.open} onOpenChange={(open) => setServiceDialog({ ...serviceDialog, open })}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{serviceDialog.mode === 'add' ? '新增服務項目' : '編輯服務項目'}</DialogTitle>
-            <DialogDescription>
-              {serviceDialog.mode === 'add' ? '請填寫新服務的詳細資訊' : '請修改服務的詳細資訊'}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium">服務名稱</label>
-              <Input
-                id="name"
-                name="name"
-                value={newService.name}
-                onChange={handleServiceChange}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="price" className="text-sm font-medium">價格 (NT$)</label>
-              <Input
-                id="price"
-                name="price"
-                type="number"
-                value={newService.price}
-                onChange={handleServiceChange}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="duration" className="text-sm font-medium">服務時長 (分鐘)</label>
-              <Input
-                id="duration"
-                name="duration"
-                type="number"
-                value={newService.duration}
-                onChange={handleServiceChange}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="description" className="text-sm font-medium">服務描述</label>
-              <Input
-                id="description"
-                name="description"
-                value={newService.description}
-                onChange={handleServiceChange}
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setServiceDialog({ ...serviceDialog, open: false })}>取消</Button>
-            <Button onClick={handleServiceSubmit}>{serviceDialog.mode === 'add' ? '新增' : '儲存'}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <Dialog open={appointmentDialog.open} onOpenChange={(open) => setAppointmentDialog({ ...appointmentDialog, open })}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>預約詳情</DialogTitle>
-          </DialogHeader>
-          
-          {appointmentDialog.data && (
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-beauty-muted">客戶姓名</p>
-                <p className="font-medium">{appointmentDialog.data.customerName}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm text-beauty-muted">服務項目</p>
-                <p className="font-medium">{appointmentDialog.data.service}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm text-beauty-muted">預約日期</p>
-                <p className="font-medium">{appointmentDialog.data.date}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm text-beauty-muted">預約時間</p>
-                <p className="font-medium">{appointmentDialog.data.time}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm text-beauty-muted">狀態</p>
-                <Badge variant={appointmentDialog.data.status === 'confirmed' ? 'default' : 'secondary'}>
-                  {appointmentDialog.data.status === 'confirmed' ? '已確認' : '已完成'}
-                </Badge>
-              </div>
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button onClick={() => setAppointmentDialog({ open: false, data: null })}>關閉</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <Dialog open={adDialog.open} onOpenChange={(open) => setAdDialog({ ...adDialog, open })}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{adDialog.mode === 'add' ? '新增廣告' : '編輯廣告'}</DialogTitle>
-            <DialogDescription>
-              {adDialog.mode === 'add' ? '請填寫新廣告的詳細資訊' : '請修改廣告的詳細資訊'}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="adTitle" className="text-sm font-medium">廣告標題</label>
-              <Input
-                id="adTitle"
-                name="title"
-                value={newAd.title}
-                onChange={handleAdChange}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="startDate" className="text-sm font-medium">開始日期</label>
-              <Input
-                id="startDate"
-                name="startDate"
-                type="date"
-                value={newAd.startDate}
-                onChange={handleAdChange}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="endDate" className="text-sm font-medium">結束日期</label>
-              <Input
-                id="endDate"
-                name="endDate"
-                type="date"
-                value={newAd.endDate}
-                onChange={handleAdChange}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">廣告圖片</label>
-              <div className="bg-gray-100 rounded-md p-4 text-center">
-                <p className="text-sm text-beauty-muted">上傳功能尚未實現</p>
-                <p className="text-xs text-beauty-muted">將使用預設圖片</p>
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAdDialog({ ...adDialog, open: false })}>取消</Button>
-            <Button onClick={handleAdSubmit}>{adDialog.mode === 'add' ? '送出申請' : '更新'}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <Dialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>確認刪除</DialogTitle>
-            <DialogDescription>
-              您確定要刪除這個{deleteDialog.type === 'service' ? '服務項目' : '廣告'}嗎？此操作無法復原。
-            </DialogDescription>
-          </DialogHeader>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialog({ open: false, type: '', id: '' })}>取消</Button>
-            <Button variant="destructive" onClick={confirmDelete}>確認刪除</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <Dialog open={showAddRestDayDialog} onOpenChange={setShowAddRestDayDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>新增特定休息日</DialogTitle>
-            <DialogDescription>
-              請選擇日期並填寫原因（選填）
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="restDate" className="text-sm font-medium">日期</label>
-              <Input
-                id="restDate"
-                type="date"
-                value={newRestDay.date}
-                onChange={(e) => setNewRestDay({ ...newRestDay, date: e.target.value })}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="restReason" className="text-sm font-medium">原因 (選填)</label>
-              <Input
-                id="restReason"
-                value={newRestDay.reason || ''}
-                onChange={(e) => setNewRestDay({ ...newRestDay, reason: e.target.value })}
-                placeholder="例如：店內裝修、國定假日等"
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddRestDayDialog(false)}>取消</Button>
-            <Button onClick={handleAddRestDay}>新增</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      <CustomerDetailsDialog 
-        open={showCustomerDetails} 
-        onOpenChange={setShowCustomerDetails} 
-        customer={selectedCustomer} 
-      />
-    </div>
-  );
-};
-
-export default BusinessProfile;
+                      <div className="flex gap-2">
+                        <div className="relative w-64">
+                          <Input
+                            placeholder="搜尋客戶..."
+                            value={customerSearchTerm}
+                            onChange={(e) => setCustomerSearchTerm(e.target.value)}
+                            className="pl-8"
+                          />
+                          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-beauty-muted" size={16}
