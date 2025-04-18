@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Star } from 'lucide-react';
@@ -48,7 +49,9 @@ const ServiceCard = ({ service, onServiceSelect }: ServiceCardProps) => {
   );
 };
 
+// Fix the interface to include index signature for useParams
 interface BusinessDetailParams {
+  [key: string]: string;
   id: string;
 }
 
