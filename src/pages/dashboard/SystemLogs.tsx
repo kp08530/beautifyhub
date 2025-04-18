@@ -1,584 +1,444 @@
 
-import { useState } from "react";
-import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import React, { useState } from 'react';
 import { 
-  Search, 
+  FileText, 
   AlertTriangle, 
+  CheckCircle, 
+  XCircle, 
   Info, 
-  AlertCircle, 
-  Check, 
   Calendar, 
-  Download, 
+  Search,
   Filter,
-  RefreshCcw
-} from "lucide-react";
-import { format, subDays } from "date-fns";
+  RefreshCw,
+  Download,
+  Code,
+  Database,
+  Lock,
+  Network
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { DateRange } from "react-day-picker";
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 
 interface SystemLog {
   id: string;
   timestamp: string;
-  level: "info" | "warning" | "error" | "success";
-  source: string;
+  level: 'error' | 'warning' | 'info' | 'debug';
+  category: 'system' | 'security' | 'database' | 'api' | 'user';
   message: string;
   details?: string;
-  userId?: string;
-  userName?: string;
+  service?: string;
+  userAgent?: string;
+  ipAddress?: string;
 }
 
-// Sample data generator
-const generateLogs = (days: number = 7): SystemLog[] => {
-  const logs: SystemLog[] = [];
-  const sources = [
-    "用戶管理",
-    "商家管理",
-    "訂單系統",
-    "付款系統",
-    "預約系統",
-    "身份驗證",
-    "資料庫操作",
-    "系統更新"
-  ];
-  
-  const errorMessages = [
-    "資料庫連線失敗",
-    "API回應逾時",
-    "非法訪問嘗試",
-    "資料驗證失敗",
-    "權限不足",
-    "服務不可用"
-  ];
-  
-  const warningMessages = [
-    "資料庫使用量高",
-    "API響應緩慢",
-    "使用者多次登入失敗",
-    "系統資源不足警告",
-    "存儲空間不足",
-    "記憶體使用量高"
-  ];
-  
-  const infoMessages = [
-    "使用者登入",
-    "使用者登出",
-    "資料更新",
-    "系統啟動",
-    "系統關閉",
-    "排程任務執行",
-    "資料庫備份",
-    "系統更新檢查"
-  ];
-  
-  const successMessages = [
-    "備份完成",
-    "資料庫最佳化完成",
-    "系統更新完成",
-    "使用者註冊成功",
-    "資料同步完成"
-  ];
-  
-  const users = [
-    { id: "user1", name: "系統管理員" },
-    { id: "user2", name: "李小明" },
-    { id: "user3", name: "王大華" },
-    { id: "user4", name: "張美美" }
-  ];
-  
-  for (let i = 0; i < 100; i++) {
-    const dayOffset = Math.floor(Math.random() * days);
-    const hourOffset = Math.floor(Math.random() * 24);
-    const minuteOffset = Math.floor(Math.random() * 60);
-    const secondOffset = Math.floor(Math.random() * 60);
-    
-    const timestamp = new Date();
-    timestamp.setDate(timestamp.getDate() - dayOffset);
-    timestamp.setHours(hourOffset, minuteOffset, secondOffset);
-    
-    const levelRand = Math.random();
-    let level: "info" | "warning" | "error" | "success";
-    let message: string;
-    
-    if (levelRand < 0.1) {
-      level = "error";
-      message = errorMessages[Math.floor(Math.random() * errorMessages.length)];
-    } else if (levelRand < 0.25) {
-      level = "warning";
-      message = warningMessages[Math.floor(Math.random() * warningMessages.length)];
-    } else if (levelRand < 0.35) {
-      level = "success";
-      message = successMessages[Math.floor(Math.random() * successMessages.length)];
-    } else {
-      level = "info";
-      message = infoMessages[Math.floor(Math.random() * infoMessages.length)];
-    }
-    
-    const source = sources[Math.floor(Math.random() * sources.length)];
-    
-    const includeUser = Math.random() < 0.7;
-    const user = includeUser ? users[Math.floor(Math.random() * users.length)] : undefined;
-    
-    logs.push({
-      id: `log-${i}`,
-      timestamp: format(timestamp, "yyyy-MM-dd HH:mm:ss"),
-      level,
-      source,
-      message,
-      details: Math.random() < 0.3 ? `日誌詳細資訊 ${i}...` : undefined,
-      userId: user?.id,
-      userName: user?.name
-    });
+const mockLogs: SystemLog[] = [
+  {
+    id: "log-1",
+    timestamp: "2025-04-18 08:32:15",
+    level: "error",
+    category: "database",
+    message: "無法連接到資料庫",
+    details: "連接至資料庫時發生錯誤，連接超時",
+    service: "database-service",
+    ipAddress: "10.0.0.5"
+  },
+  {
+    id: "log-2",
+    timestamp: "2025-04-18 08:30:22",
+    level: "warning",
+    category: "security",
+    message: "多次登入嘗試失敗",
+    details: "用戶 john@example.com 5分鐘內嘗試登入失敗3次",
+    service: "auth-service",
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    ipAddress: "203.0.113.42"
+  },
+  {
+    id: "log-3",
+    timestamp: "2025-04-18 08:29:47",
+    level: "info",
+    category: "system",
+    message: "系統自動備份完成",
+    service: "backup-service"
+  },
+  {
+    id: "log-4",
+    timestamp: "2025-04-18 08:25:33",
+    level: "debug",
+    category: "api",
+    message: "API 呼叫 - GET /api/users",
+    details: "請求處理時間: 125ms, 回應狀態: 200",
+    service: "api-gateway",
+    ipAddress: "203.0.113.17"
+  },
+  {
+    id: "log-5",
+    timestamp: "2025-04-18 08:20:05",
+    level: "error",
+    category: "api",
+    message: "API 錯誤 - 無效請求",
+    details: "POST /api/appointments: 無效的請求格式",
+    service: "api-gateway",
+    userAgent: "PostmanRuntime/7.28.4",
+    ipAddress: "198.51.100.73"
+  },
+  {
+    id: "log-6",
+    timestamp: "2025-04-18 08:15:52",
+    level: "info",
+    category: "user",
+    message: "新使用者註冊",
+    details: "用戶 ID: user-573, 電子郵件: linda.chen@example.com",
+    service: "user-service",
+    ipAddress: "203.0.113.89"
+  },
+  {
+    id: "log-7",
+    timestamp: "2025-04-18 08:10:17",
+    level: "warning",
+    category: "system",
+    message: "高記憶體使用率",
+    details: "記憶體使用率: 87%",
+    service: "system-monitor"
+  },
+  {
+    id: "log-8",
+    timestamp: "2025-04-18 08:05:39",
+    level: "info",
+    category: "security",
+    message: "管理員登入成功",
+    details: "管理員 admin@beautyapp.com 登入管理介面",
+    service: "auth-service",
+    userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+    ipAddress: "203.0.113.10"
+  },
+  {
+    id: "log-9",
+    timestamp: "2025-04-18 08:01:22",
+    level: "debug",
+    category: "database",
+    message: "資料庫查詢執行",
+    details: "查詢 businesses 表格，耗時: 42ms",
+    service: "database-service"
+  },
+  {
+    id: "log-10",
+    timestamp: "2025-04-18 08:00:05",
+    level: "info",
+    category: "system",
+    message: "系統啟動完成",
+    details: "所有服務正常啟動",
+    service: "system-service"
+  },
+  {
+    id: "log-11",
+    timestamp: "2025-04-17 23:55:18",
+    level: "error",
+    category: "security",
+    message: "未經授權的API存取嘗試",
+    details: "IP 185.156.73.42 嘗試存取受限API，已阻擋",
+    service: "api-gateway",
+    ipAddress: "185.156.73.42"
+  },
+  {
+    id: "log-12",
+    timestamp: "2025-04-17 23:50:44",
+    level: "warning",
+    category: "database",
+    message: "資料庫查詢緩慢",
+    details: "查詢 transactions 表，耗時超過 3 秒",
+    service: "database-service"
   }
-  
-  return logs.sort((a, b) => 
-    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
-};
+];
 
 const SystemLogsPage = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [allLogs] = useState<SystemLog[]>(generateLogs());
-  const [logs, setLogs] = useState<SystemLog[]>(allLogs);
-  const [levelFilter, setLevelFilter] = useState<string[]>([]);
-  const [sourceFilter, setSourceFilter] = useState<string[]>([]);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: subDays(new Date(), 7),
-    to: new Date()
+  const [logs, setLogs] = useState<SystemLog[]>(mockLogs);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [levelFilter, setLevelFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('today');
+  const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
+
+  const filteredLogs = logs.filter(log => {
+    const matchesSearch = log.message.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         (log.details && log.details.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesCategory = categoryFilter === 'all' || log.category === categoryFilter;
+    const matchesLevel = levelFilter === 'all' || log.level === levelFilter;
+    
+    // Basic date filtering
+    if (dateFilter === 'today') {
+      const today = new Date().toISOString().split('T')[0];
+      return matchesSearch && 
+             matchesCategory && 
+             matchesLevel && 
+             log.timestamp.includes(today);
+    }
+    
+    return matchesSearch && matchesCategory && matchesLevel;
   });
-  const [selectedLog, setSelectedLog] = useState<SystemLog | null>(null);
-  const [showLogDetails, setShowLogDetails] = useState(false);
-  
-  const sources = Array.from(new Set(allLogs.map(log => log.source)));
 
-  const applyFilters = () => {
-    let filtered = [...allLogs];
-    
-    // Apply search term
-    if (searchTerm) {
-      filtered = filtered.filter(log => 
-        log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (log.userName && log.userName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        log.source.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+  const handleRefresh = () => {
+    // In a real app, this would fetch fresh logs from the server
+    setLogs([...mockLogs]);
+  };
+
+  const handleDownload = () => {
+    // In a real app, this would generate and download a log file
+    alert('下載日誌功能將在實際操作中啟用');
+  };
+
+  const toggleLogDetails = (logId: string) => {
+    if (expandedLogId === logId) {
+      setExpandedLogId(null);
+    } else {
+      setExpandedLogId(logId);
     }
-    
-    // Apply level filter
-    if (levelFilter.length > 0) {
-      filtered = filtered.filter(log => levelFilter.includes(log.level));
-    }
-    
-    // Apply source filter
-    if (sourceFilter.length > 0) {
-      filtered = filtered.filter(log => sourceFilter.includes(log.source));
-    }
-    
-    // Apply date range
-    if (dateRange?.from) {
-      const fromDate = new Date(dateRange.from);
-      fromDate.setHours(0, 0, 0, 0);
-      
-      let toDate: Date;
-      if (dateRange.to) {
-        toDate = new Date(dateRange.to);
-        toDate.setHours(23, 59, 59, 999);
-      } else {
-        toDate = new Date(fromDate);
-        toDate.setHours(23, 59, 59, 999);
-      }
-      
-      filtered = filtered.filter(log => {
-        const logDate = new Date(log.timestamp);
-        return logDate >= fromDate && logDate <= toDate;
-      });
-    }
-    
-    setLogs(filtered);
   };
 
-  const resetFilters = () => {
-    setSearchTerm("");
-    setLevelFilter([]);
-    setSourceFilter([]);
-    setDateRange({
-      from: subDays(new Date(), 7),
-      to: new Date()
-    });
-    setLogs(allLogs);
-  };
-
-  const toggleLevelFilter = (level: string) => {
-    setLevelFilter(prev => 
-      prev.includes(level)
-        ? prev.filter(l => l !== level)
-        : [...prev, level]
-    );
-  };
-
-  const toggleSourceFilter = (source: string) => {
-    setSourceFilter(prev => 
-      prev.includes(source)
-        ? prev.filter(s => s !== source)
-        : [...prev, source]
-    );
-  };
-
-  const handleSearch = () => {
-    applyFilters();
-  };
-
-  const handleViewLogDetails = (log: SystemLog) => {
-    setSelectedLog(log);
-    setShowLogDetails(true);
-  };
-
-  const getLogLevelIcon = (level: string) => {
-    switch (level) {
-      case "error":
-        return <AlertCircle className="h-4 w-4 text-red-500" />;
-      case "warning":
-        return <AlertTriangle className="h-4 w-4 text-amber-500" />;
-      case "info":
-        return <Info className="h-4 w-4 text-blue-500" />;
-      case "success":
-        return <Check className="h-4 w-4 text-green-500" />;
+  const renderLogIcon = (category: string) => {
+    switch (category) {
+      case 'system':
+        return <Code className="w-5 h-5" />;
+      case 'security':
+        return <Lock className="w-5 h-5" />;
+      case 'database':
+        return <Database className="w-5 h-5" />;
+      case 'api':
+        return <Network className="w-5 h-5" />;
+      case 'user':
+        return <FileText className="w-5 h-5" />;
       default:
-        return <Info className="h-4 w-4" />;
+        return <Info className="w-5 h-5" />;
     }
   };
 
-  const getLogLevelBadge = (level: string) => {
+  const renderLogBadge = (level: string) => {
     switch (level) {
-      case "error":
+      case 'error':
         return (
-          <Badge variant="outline" className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200">
+          <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200">
+            <XCircle className="w-3 h-3 mr-1" />
             錯誤
           </Badge>
         );
-      case "warning":
+      case 'warning':
         return (
-          <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-200">
+          <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+            <AlertTriangle className="w-3 h-3 mr-1" />
             警告
           </Badge>
         );
-      case "info":
+      case 'info':
         return (
-          <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200">
+          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
+            <Info className="w-3 h-3 mr-1" />
             資訊
           </Badge>
         );
-      case "success":
+      case 'debug':
         return (
-          <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
-            成功
+          <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200">
+            <Code className="w-3 h-3 mr-1" />
+            除錯
           </Badge>
         );
       default:
-        return <Badge variant="outline">未知</Badge>;
+        return null;
     }
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">系統日誌</h1>
-            <p className="text-beauty-muted">檢視系統運行日誌與錯誤報告</p>
+    <div className="p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <h1 className="text-2xl font-bold mb-4 sm:mb-0">系統日誌</h1>
+        
+        <div className="flex space-x-2 w-full sm:w-auto">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+            className="flex-1 sm:flex-auto"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            刷新
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleDownload}
+            className="flex-1 sm:flex-auto"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            下載日誌
+          </Button>
+        </div>
+      </div>
+      
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-grow">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="搜尋日誌..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="icon" onClick={resetFilters}>
-              <RefreshCcw className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon">
-              <Download className="h-4 w-4" />
-            </Button>
+          
+          <div className="flex gap-3 w-full sm:w-auto">
+            <Select value={levelFilter} onValueChange={setLevelFilter}>
+              <SelectTrigger className="w-full sm:w-[120px]">
+                <SelectValue placeholder="日誌等級" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">所有等級</SelectItem>
+                <SelectItem value="error">錯誤</SelectItem>
+                <SelectItem value="warning">警告</SelectItem>
+                <SelectItem value="info">資訊</SelectItem>
+                <SelectItem value="debug">除錯</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-full sm:w-[120px]">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="類別" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">所有類別</SelectItem>
+                <SelectItem value="system">系統</SelectItem>
+                <SelectItem value="security">安全</SelectItem>
+                <SelectItem value="database">資料庫</SelectItem>
+                <SelectItem value="api">API</SelectItem>
+                <SelectItem value="user">使用者</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="w-full sm:w-[120px]">
+                <Calendar className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="日期" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">今天</SelectItem>
+                <SelectItem value="all">所有日期</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <CardTitle>系統日誌清單</CardTitle>
-              <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                <div className="flex-1 md:flex-none">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {dateRange?.from ? (
-                          dateRange.to ? (
-                            <>
-                              {format(dateRange.from, "yyyy-MM-dd")} 至 {format(dateRange.to, "yyyy-MM-dd")}
-                            </>
-                          ) : (
-                            format(dateRange.from, "yyyy-MM-dd")
-                          )
-                        ) : (
-                          "選擇日期範圍"
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
-                      <CalendarComponent
-                        initialFocus
-                        mode="range"
-                        defaultMonth={dateRange?.from}
-                        selected={dateRange}
-                        onSelect={setDateRange}
-                        numberOfMonths={2}
-                      />
-                      <div className="flex items-center justify-end gap-2 p-3 border-t">
-                        <Button size="sm" onClick={() => {
-                          setDateRange({
-                            from: subDays(new Date(), 7),
-                            to: new Date()
-                          });
-                        }} variant="outline">近7天</Button>
-                        <Button size="sm" onClick={() => {
-                          setDateRange({
-                            from: subDays(new Date(), 30),
-                            to: new Date()
-                          });
-                        }} variant="outline">近30天</Button>
-                        <Button size="sm" onClick={() => applyFilters()}>套用</Button>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                      <Filter className="h-4 w-4" />
-                      {levelFilter.length > 0 ? `已篩選級別 ${levelFilter.length}` : "日誌級別"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>日誌級別</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem
-                      checked={levelFilter.includes("error")}
-                      onCheckedChange={() => toggleLevelFilter("error")}
-                    >
-                      <AlertCircle className="h-4 w-4 text-red-500 mr-2" />
-                      錯誤
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={levelFilter.includes("warning")}
-                      onCheckedChange={() => toggleLevelFilter("warning")}
-                    >
-                      <AlertTriangle className="h-4 w-4 text-amber-500 mr-2" />
-                      警告
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={levelFilter.includes("info")}
-                      onCheckedChange={() => toggleLevelFilter("info")}
-                    >
-                      <Info className="h-4 w-4 text-blue-500 mr-2" />
-                      資訊
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem
-                      checked={levelFilter.includes("success")}
-                      onCheckedChange={() => toggleLevelFilter("success")}
-                    >
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      成功
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => {
-                      setLevelFilter([]);
-                    }}>
-                      清除篩選
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                      <Filter className="h-4 w-4" />
-                      {sourceFilter.length > 0 ? `已篩選來源 ${sourceFilter.length}` : "日誌來源"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>日誌來源</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {sources.map(source => (
-                      <DropdownMenuCheckboxItem
-                        key={source}
-                        checked={sourceFilter.includes(source)}
-                        onCheckedChange={() => toggleSourceFilter(source)}
-                      >
-                        {source}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => {
-                      setSourceFilter([]);
-                    }}>
-                      清除篩選
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <div className="relative w-full md:w-64">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="搜尋日誌..."
-                    className="pl-8 h-8"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleSearch();
-                      }
-                    }}
-                  />
-                </div>
-                
-                <Button size="sm" className="h-8" onClick={handleSearch}>
-                  搜尋
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[180px]">時間</TableHead>
-                    <TableHead className="w-[100px]">級別</TableHead>
-                    <TableHead className="w-[150px]">來源</TableHead>
-                    <TableHead>訊息</TableHead>
-                    <TableHead className="w-[150px]">使用者</TableHead>
-                    <TableHead className="w-[80px]">操作</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {logs.length > 0 ? (
-                    logs.map((log) => (
-                      <TableRow key={log.id}>
-                        <TableCell className="font-mono text-xs">
-                          {log.timestamp}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            {getLogLevelIcon(log.level)}
-                            <span>{getLogLevelBadge(log.level)}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{log.source}</TableCell>
-                        <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                          {log.message}
-                        </TableCell>
-                        <TableCell>{log.userName || "-"}</TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewLogDetails(log)}
-                          >
-                            詳情
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
-                        沒有符合條件的日誌記錄
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
       </div>
-
-      <Popover open={showLogDetails} onOpenChange={setShowLogDetails}>
-        <PopoverContent className="w-[400px]" align="end">
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium">日誌詳情</h3>
-              <div className="flex items-center space-x-2">
-                {selectedLog && getLogLevelIcon(selectedLog.level)}
-                <span>{selectedLog && getLogLevelBadge(selectedLog.level)}</span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <p className="text-sm text-beauty-muted">時間</p>
-                <p className="font-mono text-xs">{selectedLog?.timestamp}</p>
-              </div>
-              <div>
-                <p className="text-sm text-beauty-muted">來源</p>
-                <p>{selectedLog?.source}</p>
-              </div>
-            </div>
-            
-            <div>
-              <p className="text-sm text-beauty-muted">訊息</p>
-              <p className="font-medium">{selectedLog?.message}</p>
-            </div>
-            
-            {selectedLog?.userName && (
-              <div>
-                <p className="text-sm text-beauty-muted">使用者</p>
-                <p>{selectedLog.userName} (ID: {selectedLog.userId})</p>
-              </div>
-            )}
-            
-            {selectedLog?.details && (
-              <div>
-                <p className="text-sm text-beauty-muted">詳細資訊</p>
-                <pre className="text-xs bg-muted p-2 rounded-md overflow-auto max-h-32">
-                  {selectedLog.details}
-                </pre>
-              </div>
-            )}
-            
-            <div className="pt-2 flex justify-end">
-              <Button variant="outline" size="sm" onClick={() => setShowLogDetails(false)}>
-                關閉
-              </Button>
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
-    </DashboardLayout>
+      
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 text-gray-700 text-sm">
+              <tr>
+                <th className="py-3 px-4 text-left">時間戳記</th>
+                <th className="py-3 px-4 text-left">等級</th>
+                <th className="py-3 px-4 text-left">類別</th>
+                <th className="py-3 px-4 text-left">訊息</th>
+                <th className="py-3 px-4 text-left">服務</th>
+                <th className="py-3 px-4 text-left">詳情</th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-800 divide-y divide-gray-100">
+              {filteredLogs.length > 0 ? (
+                filteredLogs.map((log) => (
+                  <React.Fragment key={log.id}>
+                    <tr 
+                      className={`hover:bg-gray-50 ${expandedLogId === log.id ? 'bg-gray-50' : ''}`}
+                      onClick={() => toggleLogDetails(log.id)}
+                    >
+                      <td className="py-3 px-4 text-sm font-mono">
+                        {log.timestamp}
+                      </td>
+                      <td className="py-3 px-4">
+                        {renderLogBadge(log.level)}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center">
+                          <div className={`
+                            p-1 rounded-md mr-2
+                            ${log.category === 'system' ? 'bg-purple-100 text-purple-700' : ''}
+                            ${log.category === 'security' ? 'bg-red-100 text-red-700' : ''}
+                            ${log.category === 'database' ? 'bg-blue-100 text-blue-700' : ''}
+                            ${log.category === 'api' ? 'bg-green-100 text-green-700' : ''}
+                            ${log.category === 'user' ? 'bg-yellow-100 text-yellow-700' : ''}
+                          `}>
+                            {renderLogIcon(log.category)}
+                          </div>
+                          <span className="capitalize">{log.category}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        {log.message}
+                      </td>
+                      <td className="py-3 px-4 text-sm">
+                        {log.service || '-'}
+                      </td>
+                      <td className="py-3 px-4">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                        >
+                          <Info className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                    {expandedLogId === log.id && (
+                      <tr className="bg-gray-50">
+                        <td colSpan={6} className="p-4">
+                          <div className="text-sm">
+                            <h4 className="font-medium mb-2">詳細資訊</h4>
+                            <div className="bg-gray-100 p-3 rounded-md mb-3 font-mono text-xs">
+                              {log.details || '無詳細資訊'}
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              {log.ipAddress && (
+                                <div>
+                                  <span className="font-medium">IP 地址:</span> {log.ipAddress}
+                                </div>
+                              )}
+                              
+                              {log.userAgent && (
+                                <div>
+                                  <span className="font-medium">用戶代理:</span>
+                                  <div className="truncate max-w-xs" title={log.userAgent}>
+                                    {log.userAgent}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-gray-500">
+                    沒有找到符合條件的日誌記錄
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   );
 };
 

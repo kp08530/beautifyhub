@@ -1,802 +1,921 @@
 
-import { useState } from "react";
-import { DashboardLayout } from "@/components/layouts/DashboardLayout";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
+import { useState } from 'react';
 import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  Database,
-  Server,
-  HardDrive,
-  Download,
-  Upload,
-  RefreshCw,
-  FileArchive,
+  Database, 
+  FileStack, 
+  Upload, 
+  Download, 
+  CheckCircle, 
+  XCircle,
   Trash2,
-  Clock,
-  AlertTriangle,
-  CheckCircle,
-  BarChart,
-  Activity,
-  Search,
+  FileJson,
+  FileSpreadsheet,
+  FileCog,
   Filter,
-} from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+  Search,
+  Loader2
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { toast } from '@/components/ui/use-toast';
+import {
+  Dialog,
+  DialogContent,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { format, subDays } from "date-fns";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
 
-interface BackupRecord {
-  id: string;
-  date: string;
-  size: string;
-  type: "自動" | "手動";
-  status: "成功" | "失敗";
-}
-
-interface MaintenanceTask {
+interface DataFile {
   id: string;
   name: string;
-  lastRun: string;
-  nextRun: string;
-  status: "排程中" | "執行中" | "已完成" | "失敗";
-  description: string;
+  type: string;
+  size: string;
+  status: 'pending' | 'approved' | 'rejected';
+  uploadDate: string;
+  description?: string;
 }
 
-interface SystemStatistics {
-  totalUsers: number;
-  totalBusinesses: number;
-  totalAppointments: number;
-  databaseSize: string;
-  storageUsed: string;
-  totalStorageCapacity: string;
-  totalLogins: {
-    lastDay: number;
-    lastWeek: number;
-    lastMonth: number;
-  };
-  newUsers: {
-    lastDay: number;
-    lastWeek: number;
-    lastMonth: number;
-  };
-  activeUsers: {
-    lastDay: number;
-    lastWeek: number;
-    lastMonth: number;
-  };
+interface DataExport {
+  id: string;
+  name: string;
+  type: string;
+  size: string;
+  status: 'processing' | 'completed' | 'failed';
+  requestDate: string;
+  completionDate?: string;
 }
 
-// Sample data for the page
-const mockBackups: BackupRecord[] = [
-  { id: "1", date: "2025-04-18 03:00:00", size: "458 MB", type: "自動", status: "成功" },
-  { id: "2", date: "2025-04-17 03:00:00", size: "455 MB", type: "自動", status: "成功" },
-  { id: "3", date: "2025-04-16 03:00:00", size: "453 MB", type: "自動", status: "成功" },
-  { id: "4", date: "2025-04-15 03:00:00", size: "450 MB", type: "自動", status: "成功" },
-  { id: "5", date: "2025-04-14 15:32:21", size: "448 MB", type: "手動", status: "成功" },
-  { id: "6", date: "2025-04-14 03:00:00", size: "447 MB", type: "自動", status: "失敗" },
-  { id: "7", date: "2025-04-13 03:00:00", size: "445 MB", type: "自動", status: "成功" },
-];
+interface DataImport {
+  id: string;
+  name: string;
+  type: string;
+  size: string;
+  status: 'processing' | 'completed' | 'failed' | 'pending';
+  progress: number;
+  startDate: string;
+  completionDate?: string;
+  errorMessage?: string;
+}
 
-const mockTasks: MaintenanceTask[] = [
-  {
-    id: "task1",
-    name: "資料庫備份",
-    lastRun: "2025-04-18 03:00:00",
-    nextRun: "2025-04-19 03:00:00",
-    status: "已完成",
-    description: "自動備份所有資料庫內容"
+const mockFiles: DataFile[] = [
+  { 
+    id: 'file-1', 
+    name: 'businesses_data_2025.json', 
+    type: 'JSON', 
+    size: '2.4 MB', 
+    status: 'approved', 
+    uploadDate: '2025-04-01',
+    description: '美容院業者資料'
   },
-  {
-    id: "task2",
-    name: "資料庫最佳化",
-    lastRun: "2025-04-15 01:30:00",
-    nextRun: "2025-04-22 01:30:00",
-    status: "排程中",
-    description: "清理無用資料並最佳化資料表結構"
+  { 
+    id: 'file-2', 
+    name: 'users_april.csv', 
+    type: 'CSV', 
+    size: '5.1 MB', 
+    status: 'approved', 
+    uploadDate: '2025-04-10',
+    description: '用戶資料'
   },
-  {
-    id: "task3",
-    name: "檔案存儲清理",
-    lastRun: "2025-04-12 02:15:00",
-    nextRun: "2025-04-19 02:15:00",
-    status: "排程中",
-    description: "清理暫存檔案與過期內容"
+  { 
+    id: 'file-3', 
+    name: 'transactions_q1.csv', 
+    type: 'CSV', 
+    size: '8.7 MB', 
+    status: 'pending', 
+    uploadDate: '2025-04-15',
+    description: '第一季交易紀錄'
   },
-  {
-    id: "task4",
-    name: "系統健康檢查",
-    lastRun: "2025-04-18 00:00:00",
-    nextRun: "2025-04-19 00:00:00",
-    status: "已完成",
-    description: "檢查系統服務與資源使用狀況"
-  },
-  {
-    id: "task5",
-    name: "資料統計分析",
-    lastRun: "2025-04-18 01:00:00",
-    nextRun: "2025-04-19 01:00:00",
-    status: "執行中",
-    description: "生成系統資料使用統計報告"
+  { 
+    id: 'file-4', 
+    name: 'services_catalog.json', 
+    type: 'JSON', 
+    size: '1.2 MB', 
+    status: 'rejected', 
+    uploadDate: '2025-04-12',
+    description: '服務項目目錄 (格式錯誤)'
   }
 ];
 
-const mockStats: SystemStatistics = {
-  totalUsers: 5847,
-  totalBusinesses: 253,
-  totalAppointments: 28692,
-  databaseSize: "458 MB",
-  storageUsed: "12.8 GB",
-  totalStorageCapacity: "50 GB",
-  totalLogins: {
-    lastDay: 412,
-    lastWeek: 2834,
-    lastMonth: 12056
+const mockExports: DataExport[] = [
+  { 
+    id: 'export-1', 
+    name: 'users_full_export.csv', 
+    type: 'CSV', 
+    size: '24.8 MB', 
+    status: 'completed', 
+    requestDate: '2025-04-10',
+    completionDate: '2025-04-10'
   },
-  newUsers: {
-    lastDay: 24,
-    lastWeek: 158,
-    lastMonth: 642
+  { 
+    id: 'export-2', 
+    name: 'transactions_march.xlsx', 
+    type: 'XLSX', 
+    size: '18.3 MB', 
+    status: 'processing', 
+    requestDate: '2025-04-17'
   },
-  activeUsers: {
-    lastDay: 389,
-    lastWeek: 1876,
-    lastMonth: 4321
+  { 
+    id: 'export-3', 
+    name: 'appointments_q1.csv', 
+    type: 'CSV', 
+    size: '5.7 MB', 
+    status: 'completed', 
+    requestDate: '2025-04-01',
+    completionDate: '2025-04-01'
+  },
+  { 
+    id: 'export-4', 
+    name: 'analytics_dashboard.json', 
+    type: 'JSON', 
+    size: '1.5 MB', 
+    status: 'failed', 
+    requestDate: '2025-04-16'
   }
-};
+];
+
+const mockImports: DataImport[] = [
+  { 
+    id: 'import-1', 
+    name: 'new_businesses.csv', 
+    type: 'CSV', 
+    size: '3.2 MB', 
+    status: 'completed', 
+    progress: 100,
+    startDate: '2025-04-15',
+    completionDate: '2025-04-15'
+  },
+  { 
+    id: 'import-2', 
+    name: 'services_update.json', 
+    type: 'JSON', 
+    size: '2.1 MB', 
+    status: 'processing', 
+    progress: 65,
+    startDate: '2025-04-17'
+  },
+  { 
+    id: 'import-3', 
+    name: 'categories_list.csv', 
+    type: 'CSV', 
+    size: '0.8 MB', 
+    status: 'failed', 
+    progress: 42,
+    startDate: '2025-04-16',
+    errorMessage: '行 143: 格式無效'
+  },
+  { 
+    id: 'import-4', 
+    name: 'business_hours.csv', 
+    type: 'CSV', 
+    size: '1.3 MB', 
+    status: 'pending', 
+    progress: 0,
+    startDate: '2025-04-17'
+  }
+];
 
 const DataManagementPage = () => {
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("overview");
-  const [backups, setBackups] = useState<BackupRecord[]>(mockBackups);
-  const [tasks, setTasks] = useState<MaintenanceTask[]>(mockTasks);
-  const [stats] = useState<SystemStatistics>(mockStats);
-  const [showBackupDialog, setShowBackupDialog] = useState(false);
-  const [backupType, setBackupType] = useState<"全量備份" | "增量備份">("全量備份");
-  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
-  const [showDeleteBackupDialog, setShowDeleteBackupDialog] = useState(false);
-  const [selectedBackup, setSelectedBackup] = useState<BackupRecord | null>(null);
-  const [backupInProgress, setBackupInProgress] = useState(false);
-  const [backupProgress, setBackupProgress] = useState(0);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState<"全部" | "自動" | "手動">("全部");
-  const [filterStatus, setFilterStatus] = useState<"全部" | "成功" | "失敗">("全部");
-
-  const triggerBackup = () => {
-    setBackupInProgress(true);
-    setBackupProgress(0);
+  const [files, setFiles] = useState<DataFile[]>(mockFiles);
+  const [exports, setExports] = useState<DataExport[]>(mockExports);
+  const [imports, setImports] = useState<DataImport[]>(mockImports);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedFileId, setSelectedFileId] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [exportType, setExportType] = useState('csv');
+  const [exportData, setExportData] = useState(['users']);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  
+  const filteredFiles = files.filter(file => {
+    const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         (file.description && file.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = statusFilter === 'all' || file.status === statusFilter;
+    const matchesType = typeFilter === 'all' || file.type.toLowerCase() === typeFilter.toLowerCase();
     
-    // Simulate backup progress
-    const interval = setInterval(() => {
-      setBackupProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setBackupInProgress(false);
-          
-          const newBackup: BackupRecord = {
-            id: `${backups.length + 1}`,
-            date: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
-            size: "460 MB",
-            type: "手動",
-            status: "成功"
-          };
-          
-          setBackups([newBackup, ...backups]);
-          
-          toast({
-            title: "備份完成",
-            description: `${backupType}已成功完成，大小：460 MB`,
-          });
-          
-          setShowBackupDialog(false);
-          return 0;
-        }
-        return prev + 10;
-      });
-    }, 500);
-  };
-
-  const handleDeleteBackup = () => {
-    if (!selectedBackup) return;
-    
-    setBackups(backups.filter(backup => backup.id !== selectedBackup.id));
-    
-    toast({
-      title: "備份已刪除",
-      description: `備份項目 (${format(new Date(selectedBackup.date), "yyyy-MM-dd HH:mm:ss")}) 已成功刪除`,
-    });
-    
-    setShowDeleteBackupDialog(false);
-    setSelectedBackup(null);
+    return matchesSearch && matchesStatus && matchesType;
+  });
+  
+  const handleFileDelete = (id: string) => {
+    setSelectedFileId(id);
+    setShowDeleteDialog(true);
   };
   
-  const handleRestoreBackup = () => {
-    if (!selectedBackup) return;
+  const confirmDelete = () => {
+    setFiles(files.filter(file => file.id !== selectedFileId));
+    setShowDeleteDialog(false);
     
-    // Simulate restore process
     toast({
-      title: "開始還原備份",
-      description: "系統將從所選備份還原資料，此過程可能需要數分鐘",
+      title: "檔案已刪除",
+      description: "檔案已成功從系統中移除",
     });
-    
-    setTimeout(() => {
-      toast({
-        title: "備份還原成功",
-        description: `已成功從 ${format(new Date(selectedBackup.date), "yyyy-MM-dd HH:mm:ss")} 的備份還原資料`,
-      });
-    }, 3000);
-    
-    setShowRestoreDialog(false);
   };
   
-  const runTask = (taskId: string) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId
-        ? { ...task, status: "執行中" as const }
-        : task
+  const handleApprove = (id: string) => {
+    setFiles(files.map(file => 
+      file.id === id ? { ...file, status: 'approved' } : file
     ));
     
     toast({
-      title: "任務已啟動",
-      description: `維護任務已啟動，將在背景執行`,
+      title: "檔案已核准",
+      description: "檔案已成功核准並新增至系統",
     });
-    
-    // Simulate task completion
-    setTimeout(() => {
-      setTasks(tasks.map(task => 
-        task.id === taskId
-          ? { 
-              ...task, 
-              status: "已完成" as const,
-              lastRun: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
-              nextRun: format(subDays(new Date(), -7), "yyyy-MM-dd HH:mm:ss"),
-            }
-          : task
-      ));
-      
-      toast({
-        title: "任務已完成",
-        description: `維護任務已成功完成`,
-      });
-    }, 5000);
   };
   
-  const filteredBackups = backups.filter(backup => {
-    let matchesSearch = true;
-    let matchesType = true;
-    let matchesStatus = true;
+  const handleReject = (id: string) => {
+    setFiles(files.map(file => 
+      file.id === id ? { ...file, status: 'rejected' } : file
+    ));
     
-    if (searchTerm) {
-      matchesSearch = backup.date.includes(searchTerm) || 
-                      backup.size.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                      backup.type.toLowerCase().includes(searchTerm.toLowerCase());
-    }
+    toast({
+      title: "檔案已拒絕",
+      description: "檔案已被標記為拒絕",
+      variant: "destructive",
+    });
+  };
+  
+  const startExport = () => {
+    setExporting(true);
     
-    if (filterType !== "全部") {
-      matchesType = backup.type === filterType;
-    }
+    setTimeout(() => {
+      const newExport: DataExport = {
+        id: `export-${exports.length + 1}`,
+        name: `${exportData.join('_')}_export.${exportType}`,
+        type: exportType.toUpperCase(),
+        size: '0 MB',
+        status: 'processing',
+        requestDate: new Date().toISOString().split('T')[0]
+      };
+      
+      setExports([newExport, ...exports]);
+      setExporting(false);
+      setShowExportDialog(false);
+      
+      toast({
+        title: "匯出任務已開始",
+        description: "您將在完成後收到通知",
+      });
+      
+      // Simulate export completion after 3 seconds
+      setTimeout(() => {
+        setExports(exports => exports.map(exp => 
+          exp.id === newExport.id ? {
+            ...exp,
+            status: 'completed',
+            size: '12.4 MB',
+            completionDate: new Date().toISOString().split('T')[0]
+          } : exp
+        ));
+        
+        toast({
+          title: "匯出已完成",
+          description: "資料已可供下載",
+          variant: "default",
+        });
+      }, 3000);
+    }, 1500);
+  };
+  
+  const startImport = () => {
+    setImporting(true);
     
-    if (filterStatus !== "全部") {
-      matchesStatus = backup.status === filterStatus;
-    }
+    // Simulate upload progress
+    const interval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 300);
     
-    return matchesSearch && matchesType && matchesStatus;
-  });
+    // Simulate import process
+    setTimeout(() => {
+      const newImport: DataImport = {
+        id: `import-${imports.length + 1}`,
+        name: "uploaded_file.csv",
+        type: "CSV",
+        size: "2.8 MB",
+        status: 'processing',
+        progress: 0,
+        startDate: new Date().toISOString().split('T')[0]
+      };
+      
+      setImports([newImport, ...imports]);
+      setImporting(false);
+      setShowImportDialog(false);
+      setUploadProgress(0);
+      clearInterval(interval);
+      
+      toast({
+        title: "檔案已上傳",
+        description: "資料匯入處理已開始",
+      });
+      
+      // Simulate import progress and completion
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += 5;
+        
+        if (progress <= 100) {
+          setImports(imports => imports.map(imp => 
+            imp.id === newImport.id ? {
+              ...imp,
+              progress,
+              status: progress < 100 ? 'processing' : 'completed',
+              completionDate: progress >= 100 ? new Date().toISOString().split('T')[0] : undefined
+            } : imp
+          ));
+        }
+        
+        if (progress >= 100) {
+          clearInterval(progressInterval);
+          toast({
+            title: "匯入已完成",
+            description: "資料已成功匯入至系統",
+            variant: "default",
+          });
+        }
+      }, 200);
+    }, 3000);
+  };
   
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">數據管理</h1>
-            <p className="text-beauty-muted">系統數據備份、維護與優化</p>
-          </div>
-          <div>
-            <Button onClick={() => setActiveTab("backup")}>
-              <FileArchive className="mr-2 h-4 w-4" />
-              數據備份
-            </Button>
-          </div>
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">數據管理</h1>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => setShowExportDialog(true)}>
+            <Download className="mr-2 h-4 w-4" />
+            匯出資料
+          </Button>
+          <Button onClick={() => setShowImportDialog(true)}>
+            <Upload className="mr-2 h-4 w-4" />
+            匯入資料
+          </Button>
         </div>
-
-        <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full">
-            <TabsTrigger value="overview" className="flex-1">
-              <BarChart className="mr-2 h-4 w-4" />
-              系統概覽
-            </TabsTrigger>
-            <TabsTrigger value="backup" className="flex-1">
-              <Database className="mr-2 h-4 w-4" />
-              數據備份
-            </TabsTrigger>
-            <TabsTrigger value="maintenance" className="flex-1">
-              <Server className="mr-2 h-4 w-4" />
-              系統維護
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">資料庫大小</CardTitle>
-                  <Database className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.databaseSize}</div>
-                  <p className="text-xs text-muted-foreground">
-                    最後備份: {backups[0]?.date || "未備份"}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">存儲空間使用</CardTitle>
-                  <HardDrive className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.storageUsed} / {stats.totalStorageCapacity}</div>
-                  <Progress className="mt-2" value={(parseInt(stats.storageUsed) / parseInt(stats.totalStorageCapacity)) * 100} />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    已使用 {((parseInt(stats.storageUsed) / parseInt(stats.totalStorageCapacity)) * 100).toFixed(0)}% 存儲空間
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">總數據量</CardTitle>
-                  <Activity className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="text-xl font-bold">{stats.totalUsers}</div>
-                      <p className="text-xs text-muted-foreground">用戶總數</p>
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold">{stats.totalBusinesses}</div>
-                      <p className="text-xs text-muted-foreground">商家總數</p>
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold">{stats.totalAppointments}</div>
-                      <p className="text-xs text-muted-foreground">預約數量</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>系統活躍度</CardTitle>
-                  <CardDescription>用戶活躍度統計</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>指標</TableHead>
-                        <TableHead>今日</TableHead>
-                        <TableHead>本週</TableHead>
-                        <TableHead>本月</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell className="font-medium">總登入次數</TableCell>
-                        <TableCell>{stats.totalLogins.lastDay}</TableCell>
-                        <TableCell>{stats.totalLogins.lastWeek}</TableCell>
-                        <TableCell>{stats.totalLogins.lastMonth}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="font-medium">新增用戶</TableCell>
-                        <TableCell>{stats.newUsers.lastDay}</TableCell>
-                        <TableCell>{stats.newUsers.lastWeek}</TableCell>
-                        <TableCell>{stats.newUsers.lastMonth}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell className="font-medium">活躍用戶</TableCell>
-                        <TableCell>{stats.activeUsers.lastDay}</TableCell>
-                        <TableCell>{stats.activeUsers.lastWeek}</TableCell>
-                        <TableCell>{stats.activeUsers.lastMonth}</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>系統健康狀態</CardTitle>
-                  <CardDescription>關鍵系統元件狀態</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                        <span className="font-medium">資料庫連線</span>
-                      </div>
-                      <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
-                        正常
-                      </Badge>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                        <span className="font-medium">API 服務</span>
-                      </div>
-                      <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
-                        正常
-                      </Badge>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                        <span className="font-medium">檔案存儲</span>
-                      </div>
-                      <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
-                        正常
-                      </Badge>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
-                        <span className="font-medium">排程任務</span>
-                      </div>
-                      <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-200">
-                        注意
-                      </Badge>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center">
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                        <span className="font-medium">伺服器資源</span>
-                      </div>
-                      <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200">
-                        正常
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 pt-4 border-t">
-                    <p className="text-sm text-beauty-muted">上次檢查時間: 2025-04-18 08:30:00</p>
-                    <Button variant="outline" size="sm" className="mt-2 w-full">
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      重新檢查系統狀態
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="backup" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>數據備份</CardTitle>
-                    <CardDescription>管理系統數據備份</CardDescription>
-                  </div>
-                  <Button onClick={() => setShowBackupDialog(true)}>
-                    <Download className="mr-2 h-4 w-4" />
-                    建立備份
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <div className="relative flex-1 min-w-[250px]">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="搜尋備份..."
-                      className="pl-8"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  
-                  <Select value={filterType} onValueChange={(value) => setFilterType(value as any)}>
-                    <SelectTrigger className="w-[130px]">
-                      <SelectValue placeholder="備份類型" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="全部">全部類型</SelectItem>
-                      <SelectItem value="自動">自動備份</SelectItem>
-                      <SelectItem value="手動">手動備份</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as any)}>
-                    <SelectTrigger className="w-[130px]">
-                      <SelectValue placeholder="備份狀態" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="全部">全部狀態</SelectItem>
-                      <SelectItem value="成功">成功</SelectItem>
-                      <SelectItem value="失敗">失敗</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>備份時間</TableHead>
-                        <TableHead>大小</TableHead>
-                        <TableHead>類型</TableHead>
-                        <TableHead>狀態</TableHead>
-                        <TableHead className="text-right">操作</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredBackups.length > 0 ? (
-                        filteredBackups.map((backup) => (
-                          <TableRow key={backup.id}>
-                            <TableCell className="font-mono">{backup.date}</TableCell>
-                            <TableCell>{backup.size}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline">
-                                {backup.type}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={backup.status === "成功" ? "success" : "destructive"}>
-                                {backup.status === "成功" ? (
-                                  <CheckCircle className="h-3 w-3 mr-1" />
-                                ) : (
-                                  <AlertTriangle className="h-3 w-3 mr-1" />
-                                )}
-                                {backup.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedBackup(backup);
-                                    setShowRestoreDialog(true);
-                                  }}
-                                  disabled={backup.status === "失敗"}
-                                >
-                                  <Upload className="h-4 w-4 mr-1" />
-                                  還原
-                                </Button>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedBackup(backup);
-                                    setShowDeleteBackupDialog(true);
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-1" />
-                                  刪除
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={5} className="h-24 text-center">
-                            沒有符合條件的備份記錄
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-              <CardFooter className="border-t px-6 py-4">
-                <div className="flex justify-between items-center w-full">
-                  <p className="text-sm text-beauty-muted">
-                    自動備份設定: 每日凌晨 3:00
-                  </p>
-                  <p className="text-sm text-beauty-muted">
-                    保留最近 30 天備份
-                  </p>
-                </div>
-              </CardFooter>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="maintenance" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>系統維護任務</CardTitle>
-                <CardDescription>管理系統自動維護任務</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {tasks.map((task) => (
-                    <div key={task.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium">{task.name}</h3>
-                          <p className="text-sm text-beauty-muted">{task.description}</p>
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className={`
-                            ${task.status === "已完成" ? "bg-green-100 text-green-800 border-green-200" : ""} 
-                            ${task.status === "排程中" ? "bg-blue-100 text-blue-800 border-blue-200" : ""} 
-                            ${task.status === "執行中" ? "bg-amber-100 text-amber-800 border-amber-200" : ""} 
-                            ${task.status === "失敗" ? "bg-red-100 text-red-800 border-red-200" : ""}
-                          `}
-                        >
-                          {task.status}
-                        </Badge>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4 mt-4">
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 text-beauty-muted mr-2" />
-                          <div>
-                            <p className="text-xs text-beauty-muted">上次執行</p>
-                            <p className="text-sm">{task.lastRun}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 text-beauty-muted mr-2" />
-                          <div>
-                            <p className="text-xs text-beauty-muted">下次執行</p>
-                            <p className="text-sm">{task.nextRun}</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-4 pt-2 border-t flex justify-end">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => runTask(task.id)}
-                          disabled={task.status === "執行中"}
-                        >
-                          <RefreshCw className="h-4 w-4 mr-1" />
-                          立即執行
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
       </div>
       
-      <Dialog open={showBackupDialog} onOpenChange={setShowBackupDialog}>
+      <Tabs defaultValue="files" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="files" className="flex items-center">
+            <FileStack className="mr-2 h-4 w-4" />
+            資料檔案
+          </TabsTrigger>
+          <TabsTrigger value="exports" className="flex items-center">
+            <Download className="mr-2 h-4 w-4" />
+            匯出紀錄
+          </TabsTrigger>
+          <TabsTrigger value="imports" className="flex items-center">
+            <Upload className="mr-2 h-4 w-4" />
+            匯入紀錄
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="files">
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-grow">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="搜尋檔案..."
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-3 w-full sm:w-auto">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-[140px]">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="狀態" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">所有狀態</SelectItem>
+                    <SelectItem value="approved">已核准</SelectItem>
+                    <SelectItem value="pending">審核中</SelectItem>
+                    <SelectItem value="rejected">已拒絕</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="w-full sm:w-[140px]">
+                    <FileCog className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="檔案類型" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">所有類型</SelectItem>
+                    <SelectItem value="csv">CSV</SelectItem>
+                    <SelectItem value="json">JSON</SelectItem>
+                    <SelectItem value="xlsx">XLSX</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 text-gray-700 text-sm">
+                  <tr>
+                    <th className="py-3 px-4 text-left">檔案名稱</th>
+                    <th className="py-3 px-4 text-left">格式</th>
+                    <th className="py-3 px-4 text-left">大小</th>
+                    <th className="py-3 px-4 text-left">上傳日期</th>
+                    <th className="py-3 px-4 text-left">狀態</th>
+                    <th className="py-3 px-4 text-left">操作</th>
+                  </tr>
+                </thead>
+                <tbody className="text-gray-800 divide-y divide-gray-100">
+                  {filteredFiles.length > 0 ? (
+                    filteredFiles.map((file) => (
+                      <tr key={file.id} className="hover:bg-gray-50">
+                        <td className="py-3 px-4">
+                          <div className="flex items-center">
+                            {file.type === 'CSV' && <FileSpreadsheet className="h-5 w-5 mr-2 text-green-600" />}
+                            {file.type === 'JSON' && <FileJson className="h-5 w-5 mr-2 text-blue-600" />}
+                            <div>
+                              <div className="font-medium">{file.name}</div>
+                              {file.description && (
+                                <div className="text-sm text-gray-500">{file.description}</div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">{file.type}</td>
+                        <td className="py-3 px-4">{file.size}</td>
+                        <td className="py-3 px-4">{file.uploadDate}</td>
+                        <td className="py-3 px-4">
+                          {file.status === 'approved' && (
+                            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              已核准
+                            </Badge>
+                          )}
+                          {file.status === 'pending' && (
+                            <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                              審核中
+                            </Badge>
+                          )}
+                          {file.status === 'rejected' && (
+                            <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200">
+                              <XCircle className="h-3 w-3 mr-1" />
+                              已拒絕
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex space-x-2">
+                            {file.status === 'pending' && (
+                              <>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  onClick={() => handleApprove(file.id)}
+                                >
+                                  <CheckCircle className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => handleReject(file.id)}
+                                >
+                                  <XCircle className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleFileDelete(file.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-gray-500">
+                        沒有找到符合條件的檔案
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="exports">
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 text-gray-700 text-sm">
+                  <tr>
+                    <th className="py-3 px-4 text-left">匯出名稱</th>
+                    <th className="py-3 px-4 text-left">格式</th>
+                    <th className="py-3 px-4 text-left">大小</th>
+                    <th className="py-3 px-4 text-left">請求日期</th>
+                    <th className="py-3 px-4 text-left">完成日期</th>
+                    <th className="py-3 px-4 text-left">狀態</th>
+                    <th className="py-3 px-4 text-left">操作</th>
+                  </tr>
+                </thead>
+                <tbody className="text-gray-800 divide-y divide-gray-100">
+                  {exports.map((exp) => (
+                    <tr key={exp.id} className="hover:bg-gray-50">
+                      <td className="py-3 px-4 font-medium">
+                        <div className="flex items-center">
+                          {exp.type === 'CSV' && <FileSpreadsheet className="h-5 w-5 mr-2 text-green-600" />}
+                          {exp.type === 'JSON' && <FileJson className="h-5 w-5 mr-2 text-blue-600" />}
+                          {exp.type === 'XLSX' && <FileSpreadsheet className="h-5 w-5 mr-2 text-indigo-600" />}
+                          {exp.name}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">{exp.type}</td>
+                      <td className="py-3 px-4">{exp.size}</td>
+                      <td className="py-3 px-4">{exp.requestDate}</td>
+                      <td className="py-3 px-4">{exp.completionDate || '-'}</td>
+                      <td className="py-3 px-4">
+                        {exp.status === 'completed' && (
+                          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            已完成
+                          </Badge>
+                        )}
+                        {exp.status === 'processing' && (
+                          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            處理中
+                          </Badge>
+                        )}
+                        {exp.status === 'failed' && (
+                          <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200">
+                            <XCircle className="h-3 w-3 mr-1" />
+                            失敗
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex space-x-2">
+                          {exp.status === 'completed' && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            disabled={exp.status === 'processing'}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="imports">
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 text-gray-700 text-sm">
+                  <tr>
+                    <th className="py-3 px-4 text-left">檔案名稱</th>
+                    <th className="py-3 px-4 text-left">格式</th>
+                    <th className="py-3 px-4 text-left">大小</th>
+                    <th className="py-3 px-4 text-left">開始日期</th>
+                    <th className="py-3 px-4 text-left">完成日期</th>
+                    <th className="py-3 px-4 text-left">進度</th>
+                    <th className="py-3 px-4 text-left">狀態</th>
+                  </tr>
+                </thead>
+                <tbody className="text-gray-800 divide-y divide-gray-100">
+                  {imports.map((imp) => (
+                    <tr key={imp.id} className="hover:bg-gray-50">
+                      <td className="py-3 px-4 font-medium">
+                        <div className="flex items-center">
+                          {imp.type === 'CSV' && <FileSpreadsheet className="h-5 w-5 mr-2 text-green-600" />}
+                          {imp.type === 'JSON' && <FileJson className="h-5 w-5 mr-2 text-blue-600" />}
+                          {imp.name}
+                        </div>
+                        {imp.errorMessage && (
+                          <div className="text-sm text-red-500 mt-1">{imp.errorMessage}</div>
+                        )}
+                      </td>
+                      <td className="py-3 px-4">{imp.type}</td>
+                      <td className="py-3 px-4">{imp.size}</td>
+                      <td className="py-3 px-4">{imp.startDate}</td>
+                      <td className="py-3 px-4">{imp.completionDate || '-'}</td>
+                      <td className="py-3 px-4 w-[200px]">
+                        <div className="w-full">
+                          <Progress value={imp.progress} className="h-2" />
+                          <span className="text-xs text-gray-500 mt-1 block">{imp.progress}%</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        {imp.status === 'completed' && (
+                          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            已完成
+                          </Badge>
+                        )}
+                        {imp.status === 'processing' && (
+                          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                            處理中
+                          </Badge>
+                        )}
+                        {imp.status === 'failed' && (
+                          <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200">
+                            <XCircle className="h-3 w-3 mr-1" />
+                            失敗
+                          </Badge>
+                        )}
+                        {imp.status === 'pending' && (
+                          <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200">
+                            等待中
+                          </Badge>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+      
+      {/* Export Dialog */}
+      <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>建立新備份</DialogTitle>
+            <DialogTitle>匯出資料</DialogTitle>
             <DialogDescription>
-              選擇備份類型並開始備份過程
+              選擇您想匯出的資料類型和格式
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="font-medium text-sm">備份類型</label>
-              <Select
-                value={backupType}
-                onValueChange={(value) => setBackupType(value as "全量備份" | "增量備份")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="選擇備份類型" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="全量備份">全量備份</SelectItem>
-                  <SelectItem value="增量備份">增量備份</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-beauty-muted mt-1">
-                {backupType === "全量備份" 
-                  ? "全量備份將包含所有系統數據" 
-                  : "增量備份僅包含自上次全量備份後的變更數據"}
-              </p>
+            <div>
+              <label className="block text-sm font-medium mb-2">資料範圍</label>
+              <div className="space-y-2">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="users"
+                    checked={exportData.includes('users')}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setExportData(prev => [...prev, 'users']);
+                      } else {
+                        setExportData(prev => prev.filter(item => item !== 'users'));
+                      }
+                    }}
+                    className="h-4 w-4 border-gray-300 rounded"
+                  />
+                  <label htmlFor="users" className="ml-2 text-sm text-gray-700">用戶資料</label>
+                </div>
+                
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="businesses"
+                    checked={exportData.includes('businesses')}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setExportData(prev => [...prev, 'businesses']);
+                      } else {
+                        setExportData(prev => prev.filter(item => item !== 'businesses'));
+                      }
+                    }}
+                    className="h-4 w-4 border-gray-300 rounded"
+                  />
+                  <label htmlFor="businesses" className="ml-2 text-sm text-gray-700">商家資料</label>
+                </div>
+                
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="appointments"
+                    checked={exportData.includes('appointments')}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setExportData(prev => [...prev, 'appointments']);
+                      } else {
+                        setExportData(prev => prev.filter(item => item !== 'appointments'));
+                      }
+                    }}
+                    className="h-4 w-4 border-gray-300 rounded"
+                  />
+                  <label htmlFor="appointments" className="ml-2 text-sm text-gray-700">預約資料</label>
+                </div>
+                
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="services"
+                    checked={exportData.includes('services')}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setExportData(prev => [...prev, 'services']);
+                      } else {
+                        setExportData(prev => prev.filter(item => item !== 'services'));
+                      }
+                    }}
+                    className="h-4 w-4 border-gray-300 rounded"
+                  />
+                  <label htmlFor="services" className="ml-2 text-sm text-gray-700">服務項目</label>
+                </div>
+              </div>
             </div>
             
-            {backupInProgress && (
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="font-medium text-sm">備份進度</label>
-                  <span className="text-sm">{backupProgress}%</span>
-                </div>
-                <Progress value={backupProgress} />
-              </div>
-            )}
+            <div>
+              <label className="block text-sm font-medium mb-2">匯出格式</label>
+              <Select value={exportType} onValueChange={setExportType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="選擇格式" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="csv">CSV</SelectItem>
+                  <SelectItem value="json">JSON</SelectItem>
+                  <SelectItem value="xlsx">XLSX</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowBackupDialog(false)} disabled={backupInProgress}>
+            <Button variant="outline" onClick={() => setShowExportDialog(false)}>
               取消
             </Button>
-            <Button onClick={triggerBackup} disabled={backupInProgress}>
-              {backupInProgress ? "備份中..." : "開始備份"}
+            <Button 
+              onClick={startExport} 
+              disabled={exporting || exportData.length === 0}
+            >
+              {exporting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  處理中...
+                </>
+              ) : (
+                '開始匯出'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       
-      <AlertDialog open={showDeleteBackupDialog} onOpenChange={setShowDeleteBackupDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除備份</AlertDialogTitle>
-            <AlertDialogDescription>
-              您確定要刪除 {selectedBackup && format(new Date(selectedBackup.date), "yyyy-MM-dd HH:mm:ss")} 的備份嗎？此操作無法復原。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteBackup} className="bg-red-600 hover:bg-red-700">
-              確認刪除
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Import Dialog */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>匯入資料</DialogTitle>
+            <DialogDescription>
+              上傳您的資料檔案以匯入系統
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">選擇檔案</label>
+              <div className="border-2 border-dashed border-gray-300 rounded-md px-6 py-8 text-center">
+                <Database className="mx-auto h-12 w-12 text-gray-400" />
+                <div className="mt-2">
+                  <label htmlFor="file-upload" className="cursor-pointer font-medium text-blue-600 hover:text-blue-500">
+                    點擊上傳
+                  </label>
+                  <input id="file-upload" type="file" className="sr-only" />
+                  <p className="text-xs text-gray-500">支援 CSV、JSON 或 XLSX 格式</p>
+                </div>
+              </div>
+            </div>
+            
+            {uploadProgress > 0 && (
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>上傳進度</span>
+                  <span>{uploadProgress}%</span>
+                </div>
+                <Progress value={uploadProgress} className="h-2" />
+              </div>
+            )}
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">資料類型</label>
+              <Select defaultValue="users">
+                <SelectTrigger>
+                  <SelectValue placeholder="選擇資料類型" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="users">用戶資料</SelectItem>
+                  <SelectItem value="businesses">商家資料</SelectItem>
+                  <SelectItem value="services">服務項目</SelectItem>
+                  <SelectItem value="appointments">預約資料</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">匯入選項</label>
+              <div className="space-y-2">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="override"
+                    className="h-4 w-4 border-gray-300 rounded"
+                  />
+                  <label htmlFor="override" className="ml-2 text-sm text-gray-700">覆蓋現有資料</label>
+                </div>
+                
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="validate"
+                    className="h-4 w-4 border-gray-300 rounded"
+                    checked
+                  />
+                  <label htmlFor="validate" className="ml-2 text-sm text-gray-700">匯入前驗證資料</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowImportDialog(false)}>
+              取消
+            </Button>
+            <Button 
+              onClick={startImport} 
+              disabled={importing}
+            >
+              {importing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  處理中...
+                </>
+              ) : (
+                '開始匯入'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
-      <AlertDialog open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>確認還原備份</AlertDialogTitle>
-            <AlertDialogDescription>
-              您確定要從 {selectedBackup && format(new Date(selectedBackup.date), "yyyy-MM-dd HH:mm:ss")} 的備份還原系統嗎？這將覆蓋當前數據。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRestoreBackup}>
-              確認還原
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </DashboardLayout>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>確認刪除</DialogTitle>
+            <DialogDescription>
+              您確定要刪除此檔案嗎？此操作無法復原。
+            </DialogDescription>
+          </DialogHeader>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              取消
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDelete}
+            >
+              確認刪除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 

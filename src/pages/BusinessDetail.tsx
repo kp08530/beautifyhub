@@ -24,13 +24,18 @@ const BusinessDetail = () => {
   const [services, setServices] = useState([]);
   const [portfolioItems, setPortfolioItems] = useState([]);
   const [activeTab, setActiveTab] = useState('services');
+  const [selectedService, setSelectedService] = useState(null);
   
   useEffect(() => {
     if (id) {
       const businessData = getBusinessById(id);
       if (businessData) {
         setBusiness(businessData);
-        setServices(getServicesByBusinessId(id));
+        const servicesData = getServicesByBusinessId(id);
+        setServices(servicesData);
+        if (servicesData.length > 0) {
+          setSelectedService(servicesData[0]);
+        }
         setPortfolioItems(getPortfolioByBusinessId(id));
       }
     }
@@ -153,7 +158,11 @@ const BusinessDetail = () => {
                   {services.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {services.map(service => (
-                        <ServiceCard key={service.id} service={service} />
+                        <ServiceCard 
+                          key={service.id} 
+                          service={service} 
+                          onClick={() => setSelectedService(service)}
+                        />
                       ))}
                     </div>
                   ) : (
@@ -214,7 +223,15 @@ const BusinessDetail = () => {
           
           {/* Right Column - Appointment Form */}
           <div>
-            <AppointmentForm business={business} services={services} />
+            {selectedService && (
+              <AppointmentForm 
+                serviceId={selectedService.id}
+                serviceTitle={selectedService.name}
+                businessId={business.id}
+                businessName={business.name}
+                onSuccess={() => {}}
+              />
+            )}
           </div>
         </div>
       </div>

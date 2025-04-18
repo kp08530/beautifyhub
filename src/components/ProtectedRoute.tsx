@@ -1,10 +1,10 @@
 
 import { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
-  children: ReactNode;
+  children?: ReactNode;
   allowedRoles?: Array<'user' | 'admin' | 'business'>;
 }
 
@@ -23,7 +23,7 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
     return <Navigate to="/" replace />;
   }
 
-  return <>{children}</>;
+  return children ? <>{children}</> : <Outlet />;
 };
 
 export default ProtectedRoute;

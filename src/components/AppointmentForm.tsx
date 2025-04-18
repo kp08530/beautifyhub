@@ -38,7 +38,7 @@ const AppointmentForm = ({
   // Pre-fill user data if authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
-      setName(user.displayName || "");
+      setName(user.name || "");
       setEmail(user.email || "");
       setPhone(user.phone || "");
     }
