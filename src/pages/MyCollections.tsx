@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Folder, FolderPlus, Edit2, Trash2, X, Check, Heart, MessageCircle, Plus, ChevronLeft, Store, BookOpen } from 'lucide-react';
+import { BookOpen, ChevronLeft, Store, Plus } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/contexts/AuthContext';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -13,42 +12,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Collection, FavoriteBusiness, CollectionItem } from '@/types/collections';
+import CollectionList from '@/components/CollectionList';
+import PortfolioCollectionGrid from '@/components/PortfolioCollectionGrid';
+import FavoriteBusinessGrid from '@/components/FavoriteBusinessGrid';
+import LoadingSpinner from '@/components/ui/loading-spinner';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// Collection type
-interface Collection {
-  id: string;
-  name: string;
-  items: CollectionItem[];
-  createdAt: string;
-}
-
-// Portfolio item in a collection
-interface CollectionItem {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  imageUrl: string;
-  authorName: string;
-  authorAvatar: string;
-  likes: number;
-  comments: number;
-  createdAt: string;
-}
-
-// Favorite business type
-interface FavoriteBusiness {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  location: string;
-  imageUrl: string;
-  rating: number;
-  reviewCount: number;
-  createdAt: string;
-}
-
+// Main component
 const MyCollections = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
@@ -58,9 +31,8 @@ const MyCollections = () => {
   const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
-  const [editingCollectionId, setEditingCollectionId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
   const [activeTab, setActiveTab] = useState<"portfolio" | "business">("portfolio");
+  const [isLoading, setIsLoading] = useState(true);
   
   // Favorite businesses state
   const [favoriteBusinesses, setFavoriteBusinesses] = useState<FavoriteBusiness[]>([]);
@@ -72,29 +44,49 @@ const MyCollections = () => {
       return;
     }
     
-    // For demo, initialize with a default collection if none exists
-    if (collections.length === 0) {
-      const defaultCollection: Collection = {
-        id: 'default',
-        name: '我的最愛',
-        items: generateMockItems(5),
-        createdAt: new Date().toISOString(),
-      };
-      
-      setCollections([defaultCollection]);
-      setSelectedCollection(defaultCollection);
-    }
+    const initializeData = async () => {
+      setIsLoading(true);
+      try {
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // For demo, initialize with a default collection if none exists
+        if (collections.length === 0) {
+          const defaultCollection: Collection = {
+            id: 'default',
+            name: '我的最愛',
+            items: generateMockItems(5),
+            createdAt: new Date().toISOString(),
+          };
+          
+          setCollections([defaultCollection]);
+          setSelectedCollection(defaultCollection);
+        }
+        
+        // Initialize with some demo favorite businesses
+        if (favoriteBusinesses.length === 0) {
+          setFavoriteBusinesses(generateMockBusinesses(4));
+        }
+      } catch (error) {
+        console.error('Failed to load collections data:', error);
+        toast({
+          title: "載入失敗",
+          description: "無法載入您的集錦資料，請稍後再試",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    // Initialize with some demo favorite businesses
-    if (favoriteBusinesses.length === 0) {
-      setFavoriteBusinesses(generateMockBusinesses(4));
-    }
+    initializeData();
   }, [isAuthenticated, navigate]);
   
   // Generate some random items for demonstration
   const generateMockItems = (count: number) => {
     const items: CollectionItem[] = [];
     const categories = ['美髮作品', '美甲作品', '美妝作品', '美容作品', '造型設計'];
+    const hashtags = ['#美容', '#沙龍', '#髮型', '#美甲', '#造型', '#時尚', '#護膚'];
     
     for (let i = 0; i < count; i++) {
       items.push({
@@ -108,6 +100,8 @@ const MyCollections = () => {
         likes: Math.floor(Math.random() * 100) + 5,
         comments: Math.floor(Math.random() * 20),
         createdAt: new Date().toISOString(),
+        hashtags: Array.from({ length: Math.floor(Math.random() * 3) + 1 }, 
+          () => hashtags[Math.floor(Math.random() * hashtags.length)])
       });
     }
     
@@ -165,8 +159,8 @@ const MyCollections = () => {
   };
   
   // Handle renaming a collection
-  const handleRenameCollection = (id: string) => {
-    if (!editingName.trim()) {
+  const handleRenameCollection = (id: string, name: string) => {
+    if (!name.trim()) {
       toast({
         title: "請輸入集錦名稱",
         variant: "destructive",
@@ -176,7 +170,7 @@ const MyCollections = () => {
     
     const updatedCollections = collections.map(collection => {
       if (collection.id === id) {
-        return { ...collection, name: editingName };
+        return { ...collection, name };
       }
       return collection;
     });
@@ -184,15 +178,12 @@ const MyCollections = () => {
     setCollections(updatedCollections);
     
     if (selectedCollection?.id === id) {
-      setSelectedCollection({ ...selectedCollection, name: editingName });
+      setSelectedCollection({ ...selectedCollection, name });
     }
-    
-    setEditingCollectionId(null);
-    setEditingName('');
     
     toast({
       title: "重命名成功",
-      description: `已將集錦重命名為「${editingName}」`,
+      description: `已將集錦重命名為「${name}」`,
     });
   };
   
@@ -271,22 +262,38 @@ const MyCollections = () => {
       description: `正在開始與 ${businessName} 的對話`,
     });
   };
+
+  // Page transition animation variants
+  const pageVariants = {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+    exit: { opacity: 0, y: -10, transition: { duration: 0.3 } }
+  };
   
   return (
-    <div className="min-h-screen pt-16 bg-gray-50">
+    <motion.div 
+      className="min-h-screen pt-16 bg-gradient-to-b from-purple-50 to-white"
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={pageVariants}
+    >
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center mb-8">
           <button 
-            onClick={() => navigate('/portfolios')} 
+            onClick={() => navigate(-1)} 
             className="mr-4 text-beauty-muted hover:text-beauty-dark transition-colors"
+            aria-label="返回"
           >
             <ChevronLeft size={24} />
           </button>
-          <h1 className="text-3xl font-bold">我的集錦</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-beauty-primary to-beauty-secondary bg-clip-text text-transparent">
+            我的集錦
+          </h1>
         </div>
         
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "portfolio" | "business")} className="mb-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-md grid-cols-2 mb-8">
             <TabsTrigger value="portfolio" className="flex items-center">
               <BookOpen className="mr-2 h-4 w-4" />
               收藏作品
@@ -297,268 +304,84 @@ const MyCollections = () => {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="portfolio">
-            <div className="flex flex-col md:flex-row gap-8">
-              {/* Collections Sidebar */}
-              <div className="w-full md:w-64 bg-white rounded-lg shadow-sm p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="font-bold">集錦列表</h2>
-                  <button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="text-beauty-primary hover:text-beauty-primary/80 transition-colors"
-                  >
-                    <FolderPlus size={20} />
-                  </button>
-                </div>
-                
-                <div className="space-y-2">
-                  {collections.map(collection => (
-                    <div 
-                      key={collection.id}
-                      className={`p-3 rounded-md cursor-pointer flex items-center justify-between ${
-                        selectedCollection?.id === collection.id 
-                          ? 'bg-beauty-primary/10 text-beauty-primary' 
-                          : 'hover:bg-gray-100'
-                      }`}
-                      onClick={() => handleSelectCollection(collection)}
-                    >
-                      <div className="flex items-center flex-1 min-w-0">
-                        <Folder size={18} className="mr-2 flex-shrink-0" />
-                        
-                        {editingCollectionId === collection.id ? (
-                          <div className="flex items-center w-full">
-                            <Input
-                              value={editingName}
-                              onChange={(e) => setEditingName(e.target.value)}
-                              className="h-7 mr-1 text-beauty-dark"
-                              onClick={(e) => e.stopPropagation()}
-                              autoFocus
-                            />
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRenameCollection(collection.id);
-                              }}
-                              className="text-green-500 mr-1"
-                            >
-                              <Check size={16} />
-                            </button>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingCollectionId(null);
-                              }}
-                              className="text-red-500"
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <span className="truncate">{collection.name}</span>
-                            
-                            <div className="ml-auto flex items-center opacity-0 group-hover:opacity-100">
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setEditingCollectionId(collection.id);
-                                  setEditingName(collection.name);
-                                }}
-                                className="text-beauty-muted hover:text-beauty-primary ml-2"
-                              >
-                                <Edit2 size={14} />
-                              </button>
-                              <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteCollection(collection.id);
-                                }}
-                                className="text-beauty-muted hover:text-red-500 ml-2"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                      <span className="text-xs bg-gray-100 text-beauty-muted rounded-full px-2 py-0.5 ml-2">
-                        {collection.items.length}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Collection Content */}
-              <div className="flex-1">
-                {selectedCollection ? (
-                  <>
-                    <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                      <h2 className="text-2xl font-bold mb-2">{selectedCollection.name}</h2>
-                      <p className="text-beauty-muted">
-                        {selectedCollection.items.length} 個作品 · 創建於 {new Date(selectedCollection.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    
-                    {selectedCollection.items.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {selectedCollection.items.map(item => (
-                          <div key={item.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
-                            <div className="relative h-48 overflow-hidden">
-                              <img 
-                                src={item.imageUrl} 
-                                alt={item.title} 
-                                className="w-full h-full object-cover"
-                              />
-                              <button
-                                onClick={() => handleRemoveItem(selectedCollection.id, item.id)}
-                                className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full hover:bg-red-500 transition-colors"
-                              >
-                                <X size={16} />
-                              </button>
-                            </div>
-                            
-                            <div className="p-4">
-                              <div className="flex justify-between items-start mb-2">
-                                <div>
-                                  <h3 className="font-bold truncate">{item.title}</h3>
-                                  <p className="text-xs text-beauty-muted">{item.category}</p>
-                                </div>
-                                <div className="flex items-center space-x-3 text-beauty-muted">
-                                  <div className="flex items-center">
-                                    <Heart size={14} className="mr-1" />
-                                    <span className="text-xs">{item.likes}</span>
-                                  </div>
-                                  <div className="flex items-center">
-                                    <MessageCircle size={14} className="mr-1" />
-                                    <span className="text-xs">{item.comments}</span>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              <p className="text-sm text-beauty-muted line-clamp-2 mb-3">
-                                {item.description}
-                              </p>
-                              
-                              <div className="flex items-center mt-2">
-                                <img 
-                                  src={item.authorAvatar} 
-                                  alt={item.authorName} 
-                                  className="w-6 h-6 rounded-full mr-2"
-                                />
-                                <span className="text-xs">{item.authorName}</span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-                        <div className="text-beauty-muted mb-4">這個集錦還沒有作品</div>
-                        <Button
-                          onClick={() => navigate('/portfolios')}
-                          className="bg-beauty-primary hover:bg-beauty-primary/90"
-                        >
-                          <Plus size={16} className="mr-2" />
-                          瀏覽作品並添加到集錦
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-                    <div className="text-beauty-muted mb-4">請選擇一個集錦查看內容</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="business">
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <h2 className="text-2xl font-bold mb-2">收藏商家</h2>
-              <p className="text-beauty-muted">
-                {favoriteBusinesses.length} 個商家 · 快速查看您收藏的美容服務提供者
-              </p>
-            </div>
-            
-            {favoriteBusinesses.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {favoriteBusinesses.map(business => (
-                  <div key={business.id} className="bg-white rounded-lg shadow-sm overflow-hidden">
-                    <div className="relative h-40 overflow-hidden">
-                      <img 
-                        src={business.imageUrl} 
-                        alt={business.name} 
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        onClick={() => handleRemoveBusiness(business.id)}
-                        className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full hover:bg-red-500 transition-colors"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                    
-                    <div className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h3 className="font-bold truncate">{business.name}</h3>
-                          <p className="text-xs text-beauty-muted">{business.category}</p>
-                        </div>
-                        <div className="flex items-center text-yellow-500">
-                          <span className="font-medium mr-1">{business.rating.toFixed(1)}</span>
-                          <span className="text-xs text-beauty-muted">({business.reviewCount})</span>
-                        </div>
-                      </div>
-                      
-                      <p className="text-sm text-beauty-muted mb-2">
-                        <span className="inline-block bg-gray-100 text-beauty-muted rounded-full px-2 py-0.5 text-xs mr-1">
-                          {business.location}
-                        </span>
-                      </p>
-                      
-                      <p className="text-sm text-beauty-muted line-clamp-2 mb-3">
-                        {business.description}
-                      </p>
-                      
-                      <div className="flex items-center justify-between mt-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => navigate(`/business/${business.id}`)}
-                        >
-                          <Store size={14} className="mr-1" />
-                          查看詳情
-                        </Button>
-                        
-                        <Button 
-                          variant="default"
-                          size="sm"
-                          className="bg-beauty-primary hover:bg-beauty-primary/90"
-                          onClick={() => handleMessageBusiness(business.id, business.name)}
-                        >
-                          <MessageCircle size={14} className="mr-1" />
-                          發送訊息
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          <AnimatePresence mode="wait">
+            {isLoading ? (
+              <motion.div 
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center py-24"
+              >
+                <LoadingSpinner size="lg" color="primary" />
+                <p className="mt-4 text-beauty-muted">載入中...</p>
+              </motion.div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-                <div className="text-beauty-muted mb-4">您還沒有收藏任何商家</div>
-                <Button
-                  onClick={() => navigate('/businesses')}
-                  className="bg-beauty-primary hover:bg-beauty-primary/90"
+              <>
+                <TabsContent 
+                  value="portfolio"
+                  className="animate-in fade-in-50 slide-in-from-bottom-5 duration-300"
                 >
-                  <Plus size={16} className="mr-2" />
-                  瀏覽商家並收藏
-                </Button>
-              </div>
+                  <div className="flex flex-col md:flex-row gap-8">
+                    {/* Collections Sidebar */}
+                    <CollectionList 
+                      collections={collections}
+                      selectedCollection={selectedCollection}
+                      onSelectCollection={handleSelectCollection}
+                      onRenameCollection={handleRenameCollection}
+                      onDeleteCollection={handleDeleteCollection}
+                      onCreateClick={() => setIsCreateModalOpen(true)}
+                    />
+                    
+                    {/* Collection Content */}
+                    <div className="flex-1">
+                      {selectedCollection ? (
+                        <>
+                          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                            <h2 className="text-2xl font-bold bg-gradient-to-r from-beauty-primary to-beauty-accent bg-clip-text text-transparent">
+                              {selectedCollection.name}
+                            </h2>
+                            <p className="text-beauty-muted">
+                              {selectedCollection.items.length} 個作品 · 創建於 {new Date(selectedCollection.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                          
+                          <PortfolioCollectionGrid 
+                            collection={selectedCollection} 
+                            onRemoveItem={handleRemoveItem} 
+                          />
+                        </>
+                      ) : (
+                        <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+                          <div className="text-beauty-muted mb-4">請選擇一個集錦查看內容</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent 
+                  value="business"
+                  className="animate-in fade-in-50 slide-in-from-bottom-5 duration-300"
+                >
+                  <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-beauty-primary to-beauty-accent bg-clip-text text-transparent">
+                      收藏商家
+                    </h2>
+                    <p className="text-beauty-muted">
+                      {favoriteBusinesses.length} 個商家 · 快速查看您收藏的美容服務提供者
+                    </p>
+                  </div>
+                  
+                  <FavoriteBusinessGrid 
+                    businesses={favoriteBusinesses}
+                    onRemoveBusiness={handleRemoveBusiness}
+                    onMessageBusiness={handleMessageBusiness}
+                  />
+                </TabsContent>
+              </>
             )}
-          </TabsContent>
+          </AnimatePresence>
         </Tabs>
       </div>
       
@@ -586,13 +409,15 @@ const MyCollections = () => {
                   setIsCreateModalOpen(false);
                   setNewCollectionName('');
                 }}
+                className="transition-all duration-200"
               >
                 取消
               </Button>
               <Button
-                className="bg-beauty-primary hover:bg-beauty-primary/90"
+                className="bg-beauty-primary hover:bg-beauty-primary/90 transition-all duration-200"
                 onClick={handleCreateCollection}
               >
+                <Plus className="mr-2 h-4 w-4" />
                 創建
               </Button>
             </div>
@@ -601,7 +426,7 @@ const MyCollections = () => {
       </Dialog>
       
       <Footer />
-    </div>
+    </motion.div>
   );
 };
 

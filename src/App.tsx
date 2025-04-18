@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import Index from "./pages/Index";
@@ -35,54 +36,58 @@ import ReportAnalysisPage from "./pages/dashboard/ReportAnalysis";
 import SystemLogsPage from "./pages/dashboard/SystemLogs";
 import DataManagementPage from "./pages/dashboard/DataManagement";
 import Navbar from "./components/Navbar";
+import { AnimatePresence } from "framer-motion";
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <Navbar />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/register/business" element={<BusinessSignup />} />
-          <Route path="/businesses" element={<Businesses />} />
-          <Route path="/business/:id" element={<BusinessDetail />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/portfolios" element={<Portfolios />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/pricing" element={<Pricing />} />
-          
-          {/* Protected Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/business-profile" element={<BusinessProfile />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/dashboard/businesses" element={<BusinessesPage />} />
-            <Route path="/dashboard/users" element={<UsersPage />} />
-            <Route path="/dashboard/appointments" element={<AppointmentsPage />} />
-            <Route path="/dashboard/advertisements" element={<AdvertisementsPage />} />
-            <Route path="/dashboard/settings" element={<SettingsPage />} />
-            <Route path="/dashboard/permissions" element={<PermissionsPage />} />
-            <Route path="/dashboard/reports" element={<ReportsPage />} />
-            <Route path="/dashboard/notifications" element={<NotificationsPage />} />
-            <Route path="/dashboard/report-analysis" element={<ReportAnalysisPage />} />
-            <Route path="/dashboard/system-logs" element={<SystemLogsPage />} />
-            <Route path="/dashboard/data-management" element={<DataManagementPage />} />
-            <Route path="/appointments" element={<Appointments />} />
-            <Route path="/business-advertisements" element={<BusinessAdvertisements />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/my-collections" element={<MyCollections />} />
-            <Route path="/messages" element={<Messages />} />
-          </Route>
-          
-          {/* Static Pages */}
-          <Route path="/support" element={<Support />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-          
-          {/* 404 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AnimatePresence mode="wait">
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/register/business" element={<BusinessSignup />} />
+            <Route path="/businesses" element={<Businesses />} />
+            <Route path="/business/:id" element={<BusinessDetail />} />
+            <Route path="/business/:id/reviews" element={<BusinessDetail />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/portfolios" element={<Portfolios />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/pricing" element={<Pricing />} />
+            
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/business-profile" element={<BusinessProfile />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard/businesses" element={<BusinessesPage />} />
+              <Route path="/dashboard/users" element={<UsersPage />} />
+              <Route path="/dashboard/appointments" element={<AppointmentsPage />} />
+              <Route path="/dashboard/advertisements" element={<AdvertisementsPage />} />
+              <Route path="/dashboard/settings" element={<SettingsPage />} />
+              <Route path="/dashboard/permissions" element={<PermissionsPage />} />
+              <Route path="/dashboard/reports" element={<ReportsPage />} />
+              <Route path="/dashboard/notifications" element={<NotificationsPage />} />
+              <Route path="/dashboard/report-analysis" element={<ReportAnalysisPage />} />
+              <Route path="/dashboard/system-logs" element={<SystemLogsPage />} />
+              <Route path="/dashboard/data-management" element={<DataManagementPage />} />
+              <Route path="/appointments" element={<Appointments />} />
+              <Route path="/business-advertisements" element={<BusinessAdvertisements />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/my-collections" element={<MyCollections />} />
+              <Route path="/messages" element={<Messages />} />
+            </Route>
+            
+            {/* Static Pages */}
+            <Route path="/support" element={<Support />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AnimatePresence>
         <Toaster />
       </AuthProvider>
     </Router>
