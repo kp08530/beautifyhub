@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 // Define user types
@@ -10,6 +10,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   role: UserRole;
 }
 
@@ -32,21 +33,24 @@ const mockUsers: { [key: string]: User & { password: string } } = {
     name: '管理員',
     email: 'admin@beautifyhub.com',
     password: 'admin123',
-    role: 'admin'
+    role: 'admin',
+    phone: '0912-345-678'
   },
   'user@beautifyhub.com': {
     id: '2',
     name: '測試用戶',
     email: 'user@beautifyhub.com',
     password: 'user123',
-    role: 'user'
+    role: 'user',
+    phone: '0923-456-789'
   },
   'business@beautifyhub.com': {
     id: '3',
     name: '美容店家',
     email: 'business@beautifyhub.com',
     password: 'business123',
-    role: 'business'
+    role: 'business',
+    phone: '0934-567-890'
   }
 };
 
@@ -57,8 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
-  const navigate = useNavigate();
-
+  
   // Check for saved user on mount
   useEffect(() => {
     const savedUser = localStorage.getItem('beautifyhub_user');
@@ -134,7 +137,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       id: `${Object.keys(mockUsers).length + 1}`,
       name,
       email,
-      role: 'user' as UserRole
+      role: 'user' as UserRole,
+      phone: ''
     };
     
     setUser(newUser);
@@ -149,7 +153,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return true;
   };
 
-  // Logout function
+  // Logout function with useNavigate hook moved to internal implementation
   const logout = () => {
     setUser(null);
     localStorage.removeItem('beautifyhub_user');
@@ -157,7 +161,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       title: "已登出",
       description: "您已成功登出系統"
     });
-    navigate('/');
+    
+    // We'll handle navigation in the component that calls logout
   };
 
   const value = {

@@ -36,9 +36,11 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      // Get the redirect path from location state or default to home
+      const from = location.state?.from || '/';
+      navigate(from);
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, location.state]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -68,9 +70,7 @@ const Login = () => {
     const success = await login(formData.email, formData.password);
     
     if (success) {
-      // Get the redirect path from location state or default to home
-      const from = location.state?.from || '/';
-      navigate(from);
+      // Navigation is now handled in the useEffect above
     }
     
     setIsLoading(false);

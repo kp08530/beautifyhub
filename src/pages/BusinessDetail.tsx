@@ -1,242 +1,141 @@
-
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { 
-  ChevronLeft, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Clock, 
-  Star,
-  Camera,
-  Scissors
-} from 'lucide-react';
-import { getBusinessById } from '@/data/businesses';
-import { getServicesByBusinessId, getPortfolioByBusinessId } from '@/data/services';
-import ServiceCard from '@/components/ServiceCard';
-import PortfolioGallery from '@/components/PortfolioGallery';
+import { useParams } from 'react-router-dom';
+import { Star } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import AppointmentForm from '@/components/AppointmentForm';
-import Footer from '@/components/Footer';
+
+// Mock data for a single business
+const mockBusiness = {
+  id: "1",
+  name: "美麗髮廊",
+  description: "提供專業美髮服務，讓您煥然一新",
+  address: "台北市大安區忠孝東路四段123號",
+  phone: "02-2771-8585",
+  email: "service@beautyhair.com",
+  openingHours: "週一至週日 10:00-20:00",
+  imageUrl: "https://images.unsplash.com/photo-1516723814781-930ca1559c71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGhhaXIlMjBzYWxvbml8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=600&q=60",
+  rating: 4.5,
+  services: [
+    { id: "1", title: "洗髮", price: 300, description: "使用高品質洗髮精，搭配專業按摩手法" },
+    { id: "2", title: "剪髮", price: 800, description: "依照您的臉型和需求，設計獨特髮型" },
+    { id: "3", title: "染髮", price: 1500, description: "多種顏色選擇，採用植物性染劑，減少對頭髮的傷害" },
+    { id: "4", title: "燙髮", price: 2000, description: "各式燙髮技術，打造持久自然的捲度" },
+    { id: "5", title: "護髮", price: 1000, description: "深層滋潤秀髮，修復受損髮質" }
+  ],
+  categories: ["美髮"]
+};
+
+// Component for displaying a single service
+interface ServiceCardProps {
+  service: any;
+  key: string;
+  onServiceSelect: () => void;
+}
+
+const ServiceCard = ({ service, onServiceSelect }: ServiceCardProps) => {
+  return (
+    <div key={service.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="p-4">
+        <h3 className="text-lg font-semibold mb-2">{service.title}</h3>
+        <p className="text-gray-600 text-sm mb-2">{service.description}</p>
+        <div className="flex justify-between items-center">
+          <span className="text-beauty-primary font-bold">NT$ {service.price}</span>
+          <Button size="sm" onClick={onServiceSelect}>立即預約</Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface BusinessDetailParams {
+  id: string;
+}
 
 const BusinessDetail = () => {
-  const { id } = useParams<{ id: string }>();
-  const [business, setBusiness] = useState(null);
-  const [services, setServices] = useState([]);
-  const [portfolioItems, setPortfolioItems] = useState([]);
-  const [activeTab, setActiveTab] = useState('services');
-  const [selectedService, setSelectedService] = useState(null);
-  
+  const { id } = useParams<BusinessDetailParams>();
+  const [business, setBusiness] = useState(mockBusiness);
+  const [showBookingForm, setShowBookingForm] = useState(false);
+  const [selectedService, setSelectedService] = useState<{ id: string; title: string } | null>(null);
+
   useEffect(() => {
-    if (id) {
-      const businessData = getBusinessById(id);
-      if (businessData) {
-        setBusiness(businessData);
-        const servicesData = getServicesByBusinessId(id);
-        setServices(servicesData);
-        if (servicesData.length > 0) {
-          setSelectedService(servicesData[0]);
-        }
-        setPortfolioItems(getPortfolioByBusinessId(id));
-      }
-    }
+    // In a real application, you would fetch the business details
+    // from an API using the ID.
+    // For now, we'll just use the mock data.
+    // Example:
+    // const fetchBusiness = async () => {
+    //   const response = await fetch(`/api/businesses/${id}`);
+    //   const data = await response.json();
+    //   setBusiness(data);
+    // };
+    // fetchBusiness();
   }, [id]);
-  
-  if (!business) {
-    return (
-      <div className="min-h-screen flex items-center justify-center pt-16">
-        <div className="text-center">
-          <p className="text-xl text-beauty-muted">載入中...</p>
-        </div>
-      </div>
-    );
-  }
-  
+
+  // Handle booking a specific service
+  const handleBookService = (serviceId: string, serviceTitle: string) => {
+    setSelectedService({ id: serviceId, title: serviceTitle });
+    setShowBookingForm(true);
+  };
+
   return (
-    <div className="min-h-screen pt-16">
-      {/* Header Image */}
-      <div className="relative h-64 md:h-96 bg-gray-100">
-        <img 
-          src={business.imageUrl} 
-          alt={business.name} 
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-        <div className="absolute bottom-0 left-0 w-full p-6 text-white">
-          <div className="container mx-auto">
-            <Link to="/" className="inline-flex items-center text-white/90 hover:text-white mb-4">
-              <ChevronLeft size={16} className="mr-1" />
-              返回首頁
-            </Link>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">{business.name}</h1>
-            <div className="flex flex-wrap items-center gap-4 mb-2">
-              <div className="flex items-center">
-                <MapPin size={16} className="mr-1" />
-                <span>{business.address}</span>
-              </div>
-              <div className="flex items-center">
-                <Star size={16} className="mr-1 text-yellow-500" />
-                <span>{business.rating}</span>
-              </div>
+    <div className="beauty-section">
+      <div className="container mx-auto px-4 py-8">
+        {/* Business Details */}
+        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <img src={business.imageUrl} alt={business.name} className="w-full h-64 object-cover" />
+          <div className="p-6">
+            <h1 className="text-2xl font-bold mb-2">{business.name}</h1>
+            <div className="flex items-center mb-4">
+              <Star className="text-yellow-500 mr-1" size={20} />
+              <span>{business.rating}</span>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {business.categories.map((category, index) => (
-                <span 
-                  key={index} 
-                  className="text-xs px-3 py-1 bg-white/20 rounded-full"
-                >
-                  {category}
-                </span>
-              ))}
+            <p className="text-gray-700 mb-4">{business.description}</p>
+            <div>
+              <h2 className="text-xl font-semibold mb-2">聯絡資訊</h2>
+              <p>地址：{business.address}</p>
+              <p>電話：{business.phone}</p>
+              <p>營業時間：{business.openingHours}</p>
+              <p>Email: {business.email}</p>
             </div>
           </div>
         </div>
-      </div>
-      
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column */}
-          <div className="lg:col-span-2">
-            {/* Tab Navigation */}
-            <div className="flex border-b mb-6">
-              <button
-                onClick={() => setActiveTab('services')}
-                className={`px-6 py-3 font-medium text-sm flex items-center ${
-                  activeTab === 'services'
-                    ? 'border-b-2 border-beauty-primary text-beauty-primary'
-                    : 'text-beauty-muted hover:text-beauty-dark'
-                }`}
-              >
-                <Scissors size={16} className="mr-2" />
-                服務項目
-              </button>
-              <button
-                onClick={() => setActiveTab('portfolio')}
-                className={`px-6 py-3 font-medium text-sm flex items-center ${
-                  activeTab === 'portfolio'
-                    ? 'border-b-2 border-beauty-primary text-beauty-primary'
-                    : 'text-beauty-muted hover:text-beauty-dark'
-                }`}
-              >
-                <Camera size={16} className="mr-2" />
-                作品集
-              </button>
-              <button
-                onClick={() => setActiveTab('about')}
-                className={`px-6 py-3 font-medium text-sm flex items-center ${
-                  activeTab === 'about'
-                    ? 'border-b-2 border-beauty-primary text-beauty-primary'
-                    : 'text-beauty-muted hover:text-beauty-dark'
-                }`}
-              >
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  className="mr-2"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 16v-4" />
-                  <path d="M12 8h.01" />
-                </svg>
-                關於我們
-              </button>
-            </div>
-            
-            {/* Tab Content */}
-            <div className="mb-8">
-              {/* Services Tab */}
-              {activeTab === 'services' && (
-                <div className="animate-fade-in">
-                  <h2 className="text-2xl font-bold mb-6">服務項目</h2>
-                  {services.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {services.map(service => (
-                        <ServiceCard 
-                          key={service.id} 
-                          service={service} 
-                          onClick={() => setSelectedService(service)}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-beauty-muted italic">此店家尚未提供服務項目</p>
-                  )}
-                </div>
-              )}
-              
-              {/* Portfolio Tab */}
-              {activeTab === 'portfolio' && (
-                <div className="animate-fade-in">
-                  <h2 className="text-2xl font-bold mb-6">作品集</h2>
-                  {portfolioItems.length > 0 ? (
-                    <PortfolioGallery items={portfolioItems} />
-                  ) : (
-                    <p className="text-beauty-muted italic">此店家尚未提供作品集</p>
-                  )}
-                </div>
-              )}
-              
-              {/* About Tab */}
-              {activeTab === 'about' && (
-                <div className="animate-fade-in">
-                  <h2 className="text-2xl font-bold mb-6">關於我們</h2>
-                  <div className="mb-6">
-                    <p className="text-beauty-dark mb-4">{business.description}</p>
-                  </div>
-                  
-                  <h3 className="text-xl font-bold mb-3">聯絡資訊</h3>
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-start">
-                      <MapPin size={18} className="mr-2 mt-1 text-beauty-primary" />
-                      <span>{business.address}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Phone size={18} className="mr-2 text-beauty-primary" />
-                      <span>{business.phone}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Mail size={18} className="mr-2 text-beauty-primary" />
-                      <span>{business.email}</span>
-                    </div>
-                  </div>
-                  
-                  <h3 className="text-xl font-bold mb-3">營業時間</h3>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    {business.openingHours.map((day, index) => (
-                      <div key={index} className="flex justify-between py-2 border-b border-gray-100 last:border-0">
-                        <span className="font-medium">{day.day}</span>
-                        <span className={day.hours === '休息' ? 'text-gray-400' : ''}>{day.hours}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+
+        {/* Services Offered */}
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">服務項目</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {business.services && business.services.map(service => (
+              <ServiceCard
+                key={service.id}
+                service={service}
+                onServiceSelect={() => handleBookService(service.id, service.title)}
+              />
+            ))}
           </div>
-          
-          {/* Right Column - Appointment Form */}
-          <div>
+        </div>
+
+        {/* Booking Form Dialog */}
+        <Dialog open={showBookingForm} onOpenChange={setShowBookingForm}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>預約服務</DialogTitle>
+              <DialogDescription>
+                選擇日期和時間預約 {selectedService?.title} 服務
+              </DialogDescription>
+            </DialogHeader>
+            
             {selectedService && (
               <AppointmentForm 
                 serviceId={selectedService.id}
-                serviceTitle={selectedService.name}
+                serviceTitle={selectedService.title}
                 businessId={business.id}
                 businessName={business.name}
-                onSuccess={() => {}}
+                onSuccess={() => setShowBookingForm(false)}
               />
             )}
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       </div>
-      
-      <Footer />
     </div>
   );
 };
