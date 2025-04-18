@@ -1,20 +1,51 @@
-import * as React from "react"
 
+import * as React from "react"
+import { motion, Variants } from "framer-motion"
 import { cn } from "@/lib/utils"
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.4 }
+  },
+  hover: { 
+    y: -5,
+    boxShadow: "0 15px 30px rgba(0, 0, 0, 0.1)",
+    transition: { duration: 0.2 }
+  },
+  tap: { 
+    scale: 0.98,
+    transition: { duration: 0.1 }
+  }
+};
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
-      className
-    )}
-    {...props}
-  />
-))
+  React.HTMLAttributes<HTMLDivElement> & { animated?: boolean }
+>(({ className, animated = false, ...props }, ref) => {
+  const Component = animated ? motion.div : "div";
+  const motionProps = animated ? {
+    variants: cardVariants,
+    initial: "hidden",
+    animate: "visible",
+    whileHover: "hover",
+    whileTap: "tap"
+  } : {};
+
+  return (
+    <Component
+      ref={ref}
+      className={cn(
+        "rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-200",
+        className
+      )}
+      {...motionProps}
+      {...props}
+    />
+  )
+})
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<

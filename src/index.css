@@ -94,6 +94,8 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+    background-image: linear-gradient(to bottom, rgba(155, 135, 245, 0.05), rgba(230, 168, 168, 0.05));
+    background-attachment: fixed;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -103,19 +105,79 @@
 
 @layer components {
   .beauty-card {
-    @apply bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg;
+    @apply bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg 
+           transform hover:-translate-y-1;
   }
   
   .beauty-button {
-    @apply px-6 py-2 rounded-full text-white font-medium transition-all duration-300;
+    @apply px-6 py-2 rounded-full text-white font-medium transition-all duration-300
+           shadow-sm hover:shadow-md active:scale-95;
   }
   
   .beauty-input {
-    @apply px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-beauty-primary/50;
+    @apply px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-beauty-primary/50
+           transition-all duration-200;
   }
   
   .beauty-section {
     @apply py-16 px-4 md:px-8;
+  }
+  
+  .page-gradient {
+    @apply bg-gradient-to-br from-beauty-primary/5 to-beauty-secondary/5;
+  }
+  
+  .card-shadow {
+    @apply shadow-[0_4px_10px_rgba(0,0,0,0.05)] hover:shadow-[0_10px_20px_rgba(0,0,0,0.1)];
+  }
+  
+  .button-shadow {
+    @apply shadow-[0_2px_5px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_10px_rgba(0,0,0,0.15)];
+  }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg;
+  }
+  
+  /* Touch-friendly styles for mobile */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Responsive table */
+  .responsive-table {
+    @apply w-full overflow-x-auto;
+  }
+  
+  .responsive-table table {
+    @apply min-w-full divide-y divide-gray-200;
+  }
+  
+  @media (max-width: 640px) {
+    .responsive-table th,
+    .responsive-table td {
+      @apply px-2 py-1 text-sm;
+    }
+  }
+  
+  /* Draggable item */
+  .draggable-item {
+    @apply cursor-grab active:cursor-grabbing touch-action-manipulation;
+  }
+  
+  /* Lazy load placeholder */
+  .lazy-placeholder {
+    @apply bg-gray-100 animate-pulse rounded-md;
+  }
+  
+  /* Custom scrollbar */
+  .custom-scrollbar {
+    @apply scrollbar-thin scrollbar-thumb-beauty-primary/20 scrollbar-track-transparent;
+  }
+  
+  /* Swipe area */
+  .swipe-area {
+    @apply touch-pan-y;
   }
 }
 
@@ -126,4 +188,54 @@
 
 .font-serif {
   font-family: 'Playfair Display', serif;
+}
+
+/* Page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.page-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Custom animations */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Enhanced card hover effect */
+.hover-card {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }

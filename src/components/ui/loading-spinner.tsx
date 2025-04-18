@@ -1,17 +1,20 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
   color?: 'primary' | 'secondary' | 'accent' | 'white';
   className?: string;
+  text?: string;
 }
 
 export const LoadingSpinner = ({ 
   size = 'md', 
   color = 'primary',
-  className 
+  className,
+  text
 }: LoadingSpinnerProps) => {
   const sizeClasses = {
     sm: 'w-4 h-4 border-2',
@@ -27,14 +30,27 @@ export const LoadingSpinner = ({
   };
   
   return (
-    <div className={cn('flex items-center justify-center', className)}>
-      <div 
+    <div className={cn('flex flex-col items-center justify-center', className)}>
+      <motion.div 
         className={cn(
           'animate-spin rounded-full',
           sizeClasses[size],
           colorClasses[color]
         )}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
       />
+      {text && (
+        <motion.p 
+          className="mt-2 text-sm text-beauty-muted animate-pulse-soft"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          {text}
+        </motion.p>
+      )}
     </div>
   );
 };

@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface EmptyStateProps {
   title: string;
@@ -11,6 +12,7 @@ interface EmptyStateProps {
   actionLabel?: string;
   onAction?: () => void;
   className?: string;
+  variant?: 'default' | 'outline' | 'gradient';
 }
 
 const EmptyState = ({ 
@@ -19,34 +21,84 @@ const EmptyState = ({
   icon: Icon, 
   actionLabel, 
   onAction,
-  className
+  className,
+  variant = 'default'
 }: EmptyStateProps) => {
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.4,
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const childVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0 }
+  };
+
+  const baseClasses = "flex flex-col items-center justify-center py-12 px-4 text-center space-y-4 rounded-lg shadow-sm";
+
+  const variantClasses = {
+    default: "bg-white",
+    outline: "bg-white border border-gray-200",
+    gradient: "bg-gradient-to-br from-white to-gray-50 backdrop-blur-sm"
+  };
+
   return (
-    <div className={cn(
-      "flex flex-col items-center justify-center py-12 px-4 text-center space-y-4 bg-white rounded-lg shadow-sm",
-      className
-    )}>
+    <motion.div 
+      className={cn(
+        baseClasses,
+        variantClasses[variant],
+        className
+      )}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {Icon && (
-        <div className="text-beauty-muted mb-2">
+        <motion.div 
+          className="text-beauty-muted mb-2"
+          variants={childVariants}
+        >
           <Icon size={48} strokeWidth={1.5} className="mx-auto opacity-70" />
-        </div>
+        </motion.div>
       )}
       
-      <h3 className="text-lg font-medium text-beauty-dark">{title}</h3>
+      <motion.h3 
+        className="text-lg font-medium text-beauty-dark" 
+        variants={childVariants}
+      >
+        {title}
+      </motion.h3>
       
       {description && (
-        <p className="text-sm text-beauty-muted max-w-md">{description}</p>
+        <motion.p 
+          className="text-sm text-beauty-muted max-w-md"
+          variants={childVariants}
+        >
+          {description}
+        </motion.p>
       )}
       
       {actionLabel && onAction && (
-        <Button 
-          onClick={onAction}
-          className="mt-4 transition-all duration-200 transform hover:scale-105 bg-beauty-primary hover:bg-beauty-primary/90"
-        >
-          {actionLabel}
-        </Button>
+        <motion.div variants={childVariants}>
+          <Button 
+            onClick={onAction}
+            className="mt-4 transition-all duration-300 transform hover:scale-105 shadow-md bg-beauty-primary hover:bg-beauty-primary/90"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {actionLabel}
+          </Button>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

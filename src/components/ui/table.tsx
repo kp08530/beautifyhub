@@ -1,12 +1,12 @@
-import * as React from "react"
 
+import * as React from "react"
 import { cn } from "@/lib/utils"
 
 const Table = React.forwardRef<
   HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
+  React.HTMLAttributes<HTMLTableElement> & { responsive?: boolean }
+>(({ className, responsive = true, ...props }, ref) => (
+  <div className={cn("relative w-full", responsive && "overflow-auto custom-scrollbar")}>
     <table
       ref={ref}
       className={cn("w-full caption-bottom text-sm", className)}
@@ -20,7 +20,7 @@ const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
+  <thead ref={ref} className={cn("[&_tr]:border-b bg-muted/50", className)} {...props} />
 ))
 TableHeader.displayName = "TableHeader"
 
@@ -53,12 +53,13 @@ TableFooter.displayName = "TableFooter"
 
 const TableRow = React.forwardRef<
   HTMLTableRowElement,
-  React.HTMLAttributes<HTMLTableRowElement>
->(({ className, ...props }, ref) => (
+  React.HTMLAttributes<HTMLTableRowElement> & { isSelected?: boolean }
+>(({ className, isSelected, ...props }, ref) => (
   <tr
     ref={ref}
     className={cn(
-      "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+      "border-b transition-colors hover:bg-muted/50",
+      isSelected && "bg-muted",
       className
     )}
     {...props}
@@ -68,12 +69,13 @@ TableRow.displayName = "TableRow"
 
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
-  React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+  React.ThHTMLAttributes<HTMLTableCellElement> & { hiddenOnMobile?: boolean }
+>(({ className, hiddenOnMobile, ...props }, ref) => (
   <th
     ref={ref}
     className={cn(
       "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
+      hiddenOnMobile && "hidden sm:table-cell",
       className
     )}
     {...props}
@@ -83,11 +85,15 @@ TableHead.displayName = "TableHead"
 
 const TableCell = React.forwardRef<
   HTMLTableCellElement,
-  React.TdHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+  React.TdHTMLAttributes<HTMLTableCellElement> & { hiddenOnMobile?: boolean }
+>(({ className, hiddenOnMobile, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+    className={cn(
+      "p-4 align-middle [&:has([role=checkbox])]:pr-0",
+      hiddenOnMobile && "hidden sm:table-cell",
+      className
+    )}
     {...props}
   />
 ))
@@ -105,6 +111,26 @@ const TableCaption = React.forwardRef<
 ))
 TableCaption.displayName = "TableCaption"
 
+// Responsive data cell that shows label on small screens
+const ResponsiveTableCell = React.forwardRef<
+  HTMLTableCellElement,
+  React.TdHTMLAttributes<HTMLTableCellElement> & { label: string }
+>(({ className, label, children, ...props }, ref) => (
+  <td
+    ref={ref}
+    className={cn(
+      "p-4 align-middle sm:table-cell",
+      className
+    )}
+    data-label={label}
+    {...props}
+  >
+    <div className="sm:hidden font-medium text-xs text-muted-foreground mb-1">{label}:</div>
+    {children}
+  </td>
+))
+ResponsiveTableCell.displayName = "ResponsiveTableCell"
+
 export {
   Table,
   TableHeader,
@@ -114,4 +140,5 @@ export {
   TableRow,
   TableCell,
   TableCaption,
+  ResponsiveTableCell
 }
