@@ -13,7 +13,13 @@ import {
   Trash2,
   EyeIcon,
   CheckCircle,
-  XCircle
+  XCircle,
+  CalendarDays,
+  X,
+  Star,
+  Ban,
+  FileText,
+  BarChart4
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Footer from '@/components/Footer';
@@ -27,6 +33,9 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { CustomerDetailsDialog } from '@/components/dashboard/CustomerDetailsDialog';
+import { Badge } from '@/components/ui/badge';
 
 interface Business {
   id: string;
@@ -75,6 +84,15 @@ interface Customer {
   phone: string;
   visits: number;
   lastVisit: string;
+  status: "regular" | "vip" | "blacklist";
+  note?: string;
+  totalSpent: number;
+}
+
+interface RestDay {
+  id: string;
+  date: string;
+  reason?: string;
 }
 
 const mockBusiness: Business = {
@@ -171,10 +189,16 @@ const mockAdvertisements: Advertisement[] = [
 ];
 
 const mockCustomers: Customer[] = [
-  { id: "c1", name: "林小美", phone: "0912-345-678", visits: 5, lastVisit: "2025-04-10" },
-  { id: "c2", name: "王大明", phone: "0923-456-789", visits: 3, lastVisit: "2025-04-05" },
-  { id: "c3", name: "張小華", phone: "0934-567-890", visits: 8, lastVisit: "2025-04-15" },
-  { id: "c4", name: "李美美", phone: "0945-678-901", visits: 2, lastVisit: "2025-03-28" }
+  { id: "c1", name: "林小美", phone: "0912-345-678", visits: 5, lastVisit: "2025-04-10", status: "vip", totalSpent: 15000 },
+  { id: "c2", name: "王大明", phone: "0923-456-789", visits: 3, lastVisit: "2025-04-05", status: "regular", totalSpent: 9000 },
+  { id: "c3", name: "張小華", phone: "0934-567-890", visits: 8, lastVisit: "2025-04-15", status: "regular", totalSpent: 24000 },
+  { id: "c4", name: "李美美", phone: "0945-678-901", visits: 2, lastVisit: "2025-03-28", status: "blacklist", note: "多次取消預約", totalSpent: 6000 }
+];
+
+const mockRestDays: RestDay[] = [
+  { id: "rd1", date: "2025-05-01", reason: "勞動節" },
+  { id: "rd2", date: "2025-06-25", reason: "店內裝修" },
+  { id: "rd3", date: "2025-10-10", reason: "國慶日" }
 ];
 
 const BusinessProfile = () => {
@@ -189,13 +213,12 @@ const BusinessProfile = () => {
   const [services, setServices] = useState<Service[]>(mockServices);
   const [advertisements, setAdvertisements] = useState<Advertisement[]>(mockAdvertisements);
   const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
-  
-  const [serviceDialog, setServiceDialog] = useState<{ open: boolean; mode: 'add' | 'edit'; data: Service | null }>({ open: false, mode: 'add', data: null });
-  const [appointmentDialog, setAppointmentDialog] = useState<{ open: boolean; data: Appointment | null }>({ open: false, data: null });
-  const [adDialog, setAdDialog] = useState<{ open: boolean; mode: 'add' | 'edit'; data: Advertisement | null }>({ open: false, mode: 'add', data: null });
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; type: string; id: string }>({ open: false, type: '', id: '' });
-  const [newService, setNewService] = useState<Omit<Service, 'id'> & { id?: string }>({ name: '', price: 0, duration: 30, description: '' });
-  const [newAd, setNewAd] = useState<Omit<Advertisement, 'id' | 'status'> & { id?: string; status?: string }>({ title: '', imageUrl: '/placeholder.svg', startDate: '', endDate: '' });
+  const [restDays, setRestDays] = useState<RestDay[]>(mockRestDays);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [showCustomerDetails, setShowCustomerDetails] = useState(false);
+  const [showAddRestDayDialog, setShowAddRestDayDialog] = useState(false);
+  const [newRestDay, setNewRestDay] = useState<Omit<RestDay, 'id'>>({ date: '', reason: '' });
+  const [customerSearchTerm, setCustomerSearchTerm] = useState("");
   
   useEffect(() => {
     if (!isBusiness) {
@@ -360,6 +383,44 @@ const BusinessProfile = () => {
     setDeleteDialog({ open: true, type: 'ad', id });
   };
 
+  const handleAddRestDay = () => {
+    if (!newRestDay.date) return;
+    
+    const newRestDayWithId: RestDay = {
+      ...newRestDay,
+      id: `rd${restDays.length + 1}`
+    };
+    
+    setRestDays([...restDays, newRestDayWithId]);
+    
+    toast({
+      title: "休息日已新增",
+      description: `${newRestDay.date} 已設為休息日`,
+    });
+    
+    setNewRestDay({ date: '', reason: '' });
+    setShowAddRestDayDialog(false);
+  };
+
+  const handleDeleteRestDay = (id: string) => {
+    setRestDays(restDays.filter(day => day.id !== id));
+    
+    toast({
+      title: "休息日已刪除",
+      description: "指定的休息日已成功刪除",
+    });
+  };
+
+  const viewCustomerDetails = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setShowCustomerDetails(true);
+  };
+
+  const filteredCustomers = customers.filter(customer => 
+    customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+    customer.phone.includes(customerSearchTerm)
+  );
+
   return (
     <div className="min-h-screen pt-16">
       <div className="beauty-section">
@@ -450,6 +511,16 @@ const BusinessProfile = () => {
                   >
                     <Settings size={18} className="mr-3" />
                     <span>帳戶設定</span>
+                  </button>
+                  
+                  <button 
+                    onClick={() => {
+                      navigate('/dashboard/report-analysis');
+                    }}
+                    className={`flex items-center w-full px-4 py-3 rounded-md text-left hover:bg-gray-50`}
+                  >
+                    <BarChart4 size={18} className="mr-3" />
+                    <span>報表分析</span>
                   </button>
                 </div>
               </div>
@@ -588,6 +659,34 @@ const BusinessProfile = () => {
                             ))}
                           </div>
                         </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium mb-3">特定休息日</label>
+                          <div className="space-y-2 mb-2">
+                            {restDays.map((day) => (
+                              <div key={day.id} className="flex items-center justify-between p-2 border rounded-md">
+                                <div>
+                                  <span className="font-medium">{day.date}</span>
+                                  {day.reason && <span className="ml-2 text-sm text-beauty-muted">({day.reason})</span>}
+                                </div>
+                                <button
+                                  className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50"
+                                  onClick={() => handleDeleteRestDay(day.id)}
+                                >
+                                  <X size={16} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setShowAddRestDayDialog(true)}
+                          >
+                            <Plus size={14} className="mr-1" />
+                            新增休息日
+                          </Button>
+                        </div>
                       </div>
                     ) : (
                       <div className="space-y-6">
@@ -635,6 +734,25 @@ const BusinessProfile = () => {
                                 <span className={day.hours === '休息' ? 'text-gray-400' : ''}>{day.hours}</span>
                               </div>
                             ))}
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <h3 className="text-lg font-medium mb-2">特定休息日</h3>
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            {restDays.length > 0 ? (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {restDays.map((day) => (
+                                  <div key={day.id} className="flex items-center py-2 border-b border-gray-100 last:border-0">
+                                    <CalendarDays className="h-4 w-4 text-beauty-muted mr-2" />
+                                    <span className="font-medium">{day.date}</span>
+                                    {day.reason && <span className="ml-2 text-sm text-beauty-muted">({day.reason})</span>}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-beauty-muted text-sm">尚未設定特定休息日</p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -820,6 +938,8 @@ const BusinessProfile = () => {
                           type="text"
                           placeholder="搜尋客戶..."
                           className="beauty-input w-full pl-10"
+                          value={customerSearchTerm}
+                          onChange={(e) => setCustomerSearchTerm(e.target.value)}
                         />
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                           <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -835,22 +955,50 @@ const BusinessProfile = () => {
                           <tr>
                             <th className="px-4 py-3 text-sm font-medium">客戶名稱</th>
                             <th className="px-4 py-3 text-sm font-medium">電話</th>
+                            <th className="px-4 py-3 text-sm font-medium">狀態</th>
                             <th className="px-4 py-3 text-sm font-medium">消費次數</th>
+                            <th className="px-4 py-3 text-sm font-medium">消費總額</th>
                             <th className="px-4 py-3 text-sm font-medium">最近造訪</th>
                             <th className="px-4 py-3 text-sm font-medium">操作</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                          {customers.map(customer => (
+                          {filteredCustomers.map((customer) => (
                             <tr key={customer.id}>
                               <td className="px-4 py-4">{customer.name}</td>
                               <td className="px-4 py-4">{customer.phone}</td>
+                              <td className="px-4 py-4">
+                                {customer.status === "vip" && (
+                                  <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-200">
+                                    <Star className="h-3 w-3 mr-1" />
+                                    VIP
+                                  </Badge>
+                                )}
+                                {customer.status === "blacklist" && (
+                                  <Badge variant="outline" className="bg-red-100 text-red-800 hover:bg-red-100 border-red-200">
+                                    <Ban className="h-3 w-3 mr-1" />
+                                    黑名單
+                                  </Badge>
+                                )}
+                                {customer.status === "regular" && (
+                                  <Badge variant="outline" className="bg-gray-100 text-gray-800 hover:bg-gray-100 border-gray-200">
+                                    一般客戶
+                                  </Badge>
+                                )}
+                              </td>
                               <td className="px-4 py-4">{customer.visits}</td>
+                              <td className="px-4 py-4">NT$ {customer.totalSpent.toLocaleString()}</td>
                               <td className="px-4 py-4">{customer.lastVisit}</td>
                               <td className="px-4 py-4">
-                                <button className="text-beauty-primary text-sm hover:underline mr-3">
-                                  查看紀錄
-                                </button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="flex items-center text-beauty-primary"
+                                  onClick={() => viewCustomerDetails(customer)}
+                                >
+                                  <FileText className="h-4 w-4 mr-1" />
+                                  詳細資料
+                                </Button>
                               </td>
                             </tr>
                           ))}
@@ -1199,6 +1347,54 @@ const BusinessProfile = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      <Dialog open={showAddRestDayDialog} onOpenChange={setShowAddRestDayDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>新增特定休息日</DialogTitle>
+            <DialogDescription>
+              請選擇日期並輸入休息原因（選填）
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">日期</label>
+              <Input
+                type="date"
+                value={newRestDay.date}
+                onChange={(e) => setNewRestDay({ ...newRestDay, date: e.target.value })}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">休息原因（選填）</label>
+              <Input
+                placeholder="例如：國定假日、店內整修等"
+                value={newRestDay.reason || ''}
+                onChange={(e) => setNewRestDay({ ...newRestDay, reason: e.target.value })}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddRestDayDialog(false)}>
+              取消
+            </Button>
+            <Button onClick={handleAddRestDay}>
+              確認新增
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {selectedCustomer && (
+        <CustomerDetailsDialog
+          open={showCustomerDetails}
+          onOpenChange={setShowCustomerDetails}
+          customer={selectedCustomer}
+        />
+      )}
       
       <Footer />
     </div>
