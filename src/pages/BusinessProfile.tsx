@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -1017,7 +1016,7 @@ const BusinessProfile = () => {
         <CustomerDetailsDialog
           customer={selectedCustomer}
           open={showCustomerDetails}
-          onClose={() => setShowCustomerDetails(false)}
+          onOpenChange={(open) => setShowCustomerDetails(open)}
         />
       )}
       

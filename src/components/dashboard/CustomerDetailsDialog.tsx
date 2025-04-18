@@ -20,7 +20,8 @@ import {
   Calendar,
   Edit,
   PlusCircle,
-  Save
+  Save,
+  Search
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
