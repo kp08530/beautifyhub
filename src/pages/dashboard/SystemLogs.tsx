@@ -26,6 +26,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 
 interface SystemLog {
   id: string;
@@ -256,189 +257,191 @@ const SystemLogsPage = () => {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-        <h1 className="text-2xl font-bold mb-4 sm:mb-0">系統日誌</h1>
+    <DashboardLayout>
+      <div className="p-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+          <h1 className="text-2xl font-bold mb-4 sm:mb-0">系統日誌</h1>
+          
+          <div className="flex space-x-2 w-full sm:w-auto">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRefresh}
+              className="flex-1 sm:flex-auto"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              刷新
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleDownload}
+              className="flex-1 sm:flex-auto"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              下載日誌
+            </Button>
+          </div>
+        </div>
         
-        <div className="flex space-x-2 w-full sm:w-auto">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefresh}
-            className="flex-1 sm:flex-auto"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            刷新
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleDownload}
-            className="flex-1 sm:flex-auto"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            下載日誌
-          </Button>
-        </div>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-grow">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="搜尋日誌..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <div className="flex gap-3 w-full sm:w-auto">
-            <Select value={levelFilter} onValueChange={setLevelFilter}>
-              <SelectTrigger className="w-full sm:w-[120px]">
-                <SelectValue placeholder="日誌等級" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">所有等級</SelectItem>
-                <SelectItem value="error">錯誤</SelectItem>
-                <SelectItem value="warning">警告</SelectItem>
-                <SelectItem value="info">資訊</SelectItem>
-                <SelectItem value="debug">除錯</SelectItem>
-              </SelectContent>
-            </Select>
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+          <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-grow">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="搜尋日誌..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
             
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-full sm:w-[120px]">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="類別" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">所有類別</SelectItem>
-                <SelectItem value="system">系統</SelectItem>
-                <SelectItem value="security">安全</SelectItem>
-                <SelectItem value="database">資料庫</SelectItem>
-                <SelectItem value="api">API</SelectItem>
-                <SelectItem value="user">使用者</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-full sm:w-[120px]">
-                <Calendar className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="日期" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="today">今天</SelectItem>
-                <SelectItem value="all">所有日期</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-3 w-full sm:w-auto">
+              <Select value={levelFilter} onValueChange={setLevelFilter}>
+                <SelectTrigger className="w-full sm:w-[120px]">
+                  <SelectValue placeholder="日誌等級" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">所有等級</SelectItem>
+                  <SelectItem value="error">錯誤</SelectItem>
+                  <SelectItem value="warning">警告</SelectItem>
+                  <SelectItem value="info">資訊</SelectItem>
+                  <SelectItem value="debug">除錯</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full sm:w-[120px]">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="類別" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">所有類別</SelectItem>
+                  <SelectItem value="system">系統</SelectItem>
+                  <SelectItem value="security">安全</SelectItem>
+                  <SelectItem value="database">資料庫</SelectItem>
+                  <SelectItem value="api">API</SelectItem>
+                  <SelectItem value="user">使用者</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger className="w-full sm:w-[120px]">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="日期" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="today">今天</SelectItem>
+                  <SelectItem value="all">所有日期</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 text-gray-700 text-sm">
-              <tr>
-                <th className="py-3 px-4 text-left">時間戳記</th>
-                <th className="py-3 px-4 text-left">等級</th>
-                <th className="py-3 px-4 text-left">類別</th>
-                <th className="py-3 px-4 text-left">訊息</th>
-                <th className="py-3 px-4 text-left">服務</th>
-                <th className="py-3 px-4 text-left">詳情</th>
-              </tr>
-            </thead>
-            <tbody className="text-gray-800 divide-y divide-gray-100">
-              {filteredLogs.length > 0 ? (
-                filteredLogs.map((log) => (
-                  <React.Fragment key={log.id}>
-                    <tr 
-                      className={`hover:bg-gray-50 ${expandedLogId === log.id ? 'bg-gray-50' : ''}`}
-                      onClick={() => toggleLogDetails(log.id)}
-                    >
-                      <td className="py-3 px-4 text-sm font-mono">
-                        {log.timestamp}
-                      </td>
-                      <td className="py-3 px-4">
-                        {renderLogBadge(log.level)}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center">
-                          <div className={`
-                            p-1 rounded-md mr-2
-                            ${log.category === 'system' ? 'bg-purple-100 text-purple-700' : ''}
-                            ${log.category === 'security' ? 'bg-red-100 text-red-700' : ''}
-                            ${log.category === 'database' ? 'bg-blue-100 text-blue-700' : ''}
-                            ${log.category === 'api' ? 'bg-green-100 text-green-700' : ''}
-                            ${log.category === 'user' ? 'bg-yellow-100 text-yellow-700' : ''}
-                          `}>
-                            {renderLogIcon(log.category)}
-                          </div>
-                          <span className="capitalize">{log.category}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        {log.message}
-                      </td>
-                      <td className="py-3 px-4 text-sm">
-                        {log.service || '-'}
-                      </td>
-                      <td className="py-3 px-4">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                        >
-                          <Info className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                    {expandedLogId === log.id && (
-                      <tr className="bg-gray-50">
-                        <td colSpan={6} className="p-4">
-                          <div className="text-sm">
-                            <h4 className="font-medium mb-2">詳細資訊</h4>
-                            <div className="bg-gray-100 p-3 rounded-md mb-3 font-mono text-xs">
-                              {log.details || '無詳細資訊'}
+        
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 text-gray-700 text-sm">
+                <tr>
+                  <th className="py-3 px-4 text-left">時間戳記</th>
+                  <th className="py-3 px-4 text-left">等級</th>
+                  <th className="py-3 px-4 text-left">類別</th>
+                  <th className="py-3 px-4 text-left">訊息</th>
+                  <th className="py-3 px-4 text-left">服務</th>
+                  <th className="py-3 px-4 text-left">詳情</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-800 divide-y divide-gray-100">
+                {filteredLogs.length > 0 ? (
+                  filteredLogs.map((log) => (
+                    <React.Fragment key={log.id}>
+                      <tr 
+                        className={`hover:bg-gray-50 ${expandedLogId === log.id ? 'bg-gray-50' : ''}`}
+                        onClick={() => toggleLogDetails(log.id)}
+                      >
+                        <td className="py-3 px-4 text-sm font-mono">
+                          {log.timestamp}
+                        </td>
+                        <td className="py-3 px-4">
+                          {renderLogBadge(log.level)}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center">
+                            <div className={`
+                              p-1 rounded-md mr-2
+                              ${log.category === 'system' ? 'bg-purple-100 text-purple-700' : ''}
+                              ${log.category === 'security' ? 'bg-red-100 text-red-700' : ''}
+                              ${log.category === 'database' ? 'bg-blue-100 text-blue-700' : ''}
+                              ${log.category === 'api' ? 'bg-green-100 text-green-700' : ''}
+                              ${log.category === 'user' ? 'bg-yellow-100 text-yellow-700' : ''}
+                            `}>
+                              {renderLogIcon(log.category)}
                             </div>
-                            
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              {log.ipAddress && (
-                                <div>
-                                  <span className="font-medium">IP 地址:</span> {log.ipAddress}
-                                </div>
-                              )}
-                              
-                              {log.userAgent && (
-                                <div>
-                                  <span className="font-medium">用戶代理:</span>
-                                  <div className="truncate max-w-xs" title={log.userAgent}>
-                                    {log.userAgent}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
+                            <span className="capitalize">{log.category}</span>
                           </div>
                         </td>
+                        <td className="py-3 px-4">
+                          {log.message}
+                        </td>
+                        <td className="py-3 px-4 text-sm">
+                          {log.service || '-'}
+                        </td>
+                        <td className="py-3 px-4">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                          >
+                            <Info className="h-4 w-4" />
+                          </Button>
+                        </td>
                       </tr>
-                    )}
-                  </React.Fragment>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-500">
-                    沒有找到符合條件的日誌記錄
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                      {expandedLogId === log.id && (
+                        <tr className="bg-gray-50">
+                          <td colSpan={6} className="p-4">
+                            <div className="text-sm">
+                              <h4 className="font-medium mb-2">詳細資訊</h4>
+                              <div className="bg-gray-100 p-3 rounded-md mb-3 font-mono text-xs">
+                                {log.details || '無詳細資訊'}
+                              </div>
+                              
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {log.ipAddress && (
+                                  <div>
+                                    <span className="font-medium">IP 地址:</span> {log.ipAddress}
+                                  </div>
+                                )}
+                                
+                                {log.userAgent && (
+                                  <div>
+                                    <span className="font-medium">用戶代理:</span>
+                                    <div className="truncate max-w-xs" title={log.userAgent}>
+                                      {log.userAgent}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-gray-500">
+                      沒有找到符合條件的日誌記錄
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

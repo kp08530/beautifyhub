@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Package } from "lucide-react";
 
 interface BusinessFormData {
   id?: string;
@@ -31,6 +32,7 @@ interface BusinessFormData {
   description: string;
   businessType: string;
   status: "已認證" | "審核中" | "未認證" | "停用";
+  plan: "基礎版" | "專業版" | "企業版";
 }
 
 interface BusinessManagementDialogProps {
@@ -47,9 +49,11 @@ interface BusinessManagementDialogProps {
     description?: string;
     services?: number;
     businessType?: string;
+    plan?: string;
   };
   onSave: (businessData: BusinessFormData) => void;
   mode: "add" | "edit" | "approve";
+  onChangePlan?: (businessId: string) => void;
 }
 
 const businessTypes = [
@@ -67,6 +71,7 @@ export function BusinessManagementDialog({
   business,
   onSave,
   mode,
+  onChangePlan,
 }: BusinessManagementDialogProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState<BusinessFormData>({
@@ -79,6 +84,7 @@ export function BusinessManagementDialog({
     description: business?.description || "",
     businessType: business?.businessType || "hair",
     status: (business?.status as "已認證" | "審核中" | "未認證" | "停用") || "審核中",
+    plan: (business?.plan as "基礎版" | "專業版" | "企業版") || "基礎版",
   });
 
   const handleChange = (
@@ -106,6 +112,12 @@ export function BusinessManagementDialog({
     
     onSave(formData);
     onClose();
+  };
+
+  const handleChangePlan = () => {
+    if (onChangePlan && formData.id) {
+      onChangePlan(formData.id);
+    }
   };
 
   return (
@@ -258,6 +270,38 @@ export function BusinessManagementDialog({
                   <SelectItem value="停用">停用</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="plan" className="text-right">
+                服務方案
+              </Label>
+              <div className="col-span-3 flex items-center gap-2">
+                <Select
+                  name="plan"
+                  value={formData.plan}
+                  onValueChange={(value) => handleSelectChange("plan", value)}
+                >
+                  <SelectTrigger className="flex-grow">
+                    <SelectValue placeholder="選擇方案" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="基礎版">基礎版</SelectItem>
+                    <SelectItem value="專業版">專業版</SelectItem>
+                    <SelectItem value="企業版">企業版</SelectItem>
+                  </SelectContent>
+                </Select>
+                {mode === "edit" && (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={handleChangePlan}
+                    className="whitespace-nowrap"
+                  >
+                    <Package className="w-4 h-4 mr-2" />
+                    變更方案
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
           <DialogFooter>

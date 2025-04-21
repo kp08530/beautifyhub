@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,8 +15,9 @@ import {
   Legend, 
   ResponsiveContainer 
 } from 'recharts';
-import { Calendar, DollarSign, UserPlus, Users, Store, Clock, ArrowRight } from "lucide-react";
+import { Calendar, DollarSign, UserPlus, Users, Store, Clock, ArrowRight, Package } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 const Dashboard = () => {
   // Dummy data for the overview chart
@@ -37,12 +39,26 @@ const Dashboard = () => {
     { id: 4, type: "評價", user: "陳小華", business: "自然美容", rating: 5, time: "3 小時前" },
   ];
 
+  // 當前方案資訊 (實際應用中應從用戶資料中獲取)
+  const [currentPlan, setCurrentPlan] = useState("專業版");
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">歡迎回來</h1>
-          <p className="text-beauty-muted">查看您的業務概況</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">歡迎回來</h1>
+            <p className="text-beauty-muted">查看您的業務概況</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="px-3 py-1 border-beauty-primary text-beauty-primary flex items-center gap-1">
+              <Package className="h-3.5 w-3.5" />
+              {currentPlan}
+            </Badge>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/pricing">變更方案</Link>
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-4">
