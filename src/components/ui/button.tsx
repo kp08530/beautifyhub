@@ -3,7 +3,7 @@ import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
-import { motion, type HTMLMotionProps } from "framer-motion"
+import { motion } from "framer-motion"
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-95 shadow-sm hover:shadow-md",
@@ -45,28 +45,10 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, isLoading, withAnimation = false, children, ...props }, ref) => {
-    if (asChild) {
-      // Regular Slot without motion
-      return (
-        <Slot
-          className={cn(buttonVariants({ variant, size, className }))}
-          ref={ref}
-          {...props}
-        >
-          {isLoading ? (
-            <>
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              <span>處理中...</span>
-            </>
-          ) : (
-            children
-          )}
-        </Slot>
-      );
-    }
+    const Comp = asChild ? Slot : "button";
     
-    if (withAnimation) {
-      // Animation version with motion.button
+    // For animated buttons, we'll use motion
+    if (withAnimation && !asChild) {
       return (
         <motion.button
           className={cn(buttonVariants({ variant, size, className }))}
@@ -74,7 +56,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           transition={{ duration: 0.2 }}
-          {...props}
+          {...(props as any)} // Type assertion to avoid the TypeScript error
         >
           {isLoading ? (
             <>
@@ -88,9 +70,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       );
     }
     
-    // Regular button without motion
+    // Regular button or Slot
     return (
-      <button
+      <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
@@ -103,7 +85,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ) : (
           children
         )}
-      </button>
+      </Comp>
     );
   }
 )

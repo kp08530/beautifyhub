@@ -1,9 +1,9 @@
 
 import * as React from "react"
-import { motion, type Variants, type HTMLMotionProps } from "framer-motion"
+import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
-const cardVariants: Variants = {
+const cardVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { 
     opacity: 1, 
@@ -40,7 +40,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
           animate="visible"
           whileHover="hover"
           whileTap="tap"
-          {...props}
+          {...(props as any)} // Type assertion to avoid the TypeScript error
         />
       );
     }
