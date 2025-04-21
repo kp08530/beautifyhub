@@ -87,16 +87,12 @@ const EmptyState = ({
       )}
       
       {actionLabel && onAction && (
-        <motion.div variants={childVariants}>
-          <Button 
-            onClick={onAction}
-            className="mt-4 transition-all duration-300 transform hover:scale-105 shadow-md bg-beauty-primary hover:bg-beauty-primary/90"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {actionLabel}
-          </Button>
-        </motion.div>
+        <Button 
+          onClick={onAction}
+          className="mt-4 transition-all duration-300 transform hover:scale-105 shadow-md bg-beauty-primary hover:bg-beauty-primary/90"
+        >
+          {actionLabel}
+        </Button>
       )}
     </motion.div>
   );

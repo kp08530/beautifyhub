@@ -1,6 +1,6 @@
 
 import * as React from "react"
-import { motion, Variants } from "framer-motion"
+import { motion, type Variants, type HTMLMotionProps } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 const cardVariants: Variants = {
@@ -26,7 +26,9 @@ const Card = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement> & { animated?: boolean }
 >(({ className, animated = false, ...props }, ref) => {
   const Component = animated ? motion.div : "div";
-  const motionProps = animated ? {
+
+  // motionsProps must be of type HTMLMotionProps<"div"> for motion.div
+  const motionProps: Partial<HTMLMotionProps<"div">> = animated ? {
     variants: cardVariants,
     initial: "hidden",
     animate: "visible",
