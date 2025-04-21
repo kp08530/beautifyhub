@@ -21,33 +21,42 @@ const cardVariants: Variants = {
   }
 };
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { animated?: boolean }
->(({ className, animated = false, ...props }, ref) => {
-  const Component = animated ? motion.div : "div";
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  animated?: boolean;
+}
 
-  // motionsProps must be of type HTMLMotionProps<"div"> for motion.div
-  const motionProps: Partial<HTMLMotionProps<"div">> = animated ? {
-    variants: cardVariants,
-    initial: "hidden",
-    animate: "visible",
-    whileHover: "hover",
-    whileTap: "tap"
-  } : {};
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, animated = false, ...props }, ref) => {
+    if (animated) {
+      return (
+        <motion.div
+          ref={ref}
+          className={cn(
+            "rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-200",
+            className
+          )}
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+          whileHover="hover"
+          whileTap="tap"
+          {...props}
+        />
+      );
+    }
 
-  return (
-    <Component
-      ref={ref}
-      className={cn(
-        "rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-200",
-        className
-      )}
-      {...motionProps}
-      {...props}
-    />
-  )
-})
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-200",
+          className
+        )}
+        {...props}
+      />
+    );
+  }
+);
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<

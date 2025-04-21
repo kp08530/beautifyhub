@@ -45,20 +45,54 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, isLoading, withAnimation = false, children, ...props }, ref) => {
-    const Comp = asChild ? Slot : (withAnimation ? motion.button : "button");
+    if (asChild) {
+      // Regular Slot without motion
+      return (
+        <Slot
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          {...props}
+        >
+          {isLoading ? (
+            <>
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <span>處理中...</span>
+            </>
+          ) : (
+            children
+          )}
+        </Slot>
+      );
+    }
     
-    // We explicitly type motionProps for motion.button only
-    const motionProps: Partial<HTMLMotionProps<"button">> = withAnimation ? {
-      whileHover: { scale: 1.03 },
-      whileTap: { scale: 0.97 },
-      transition: { duration: 0.2 }
-    } : {};
-
+    if (withAnimation) {
+      // Animation version with motion.button
+      return (
+        <motion.button
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          transition={{ duration: 0.2 }}
+          {...props}
+        >
+          {isLoading ? (
+            <>
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <span>處理中...</span>
+            </>
+          ) : (
+            children
+          )}
+        </motion.button>
+      );
+    }
+    
+    // Regular button without motion
     return (
-      <Comp
+      <button
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        {...motionProps}
         {...props}
       >
         {isLoading ? (
@@ -69,8 +103,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ) : (
           children
         )}
-      </Comp>
-    )
+      </button>
+    );
   }
 )
 Button.displayName = "Button"
