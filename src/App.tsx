@@ -1,97 +1,60 @@
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import HomePage from './pages/HomePage';
+import Dashboard from './pages/dashboard/Dashboard';
+import BusinessesPage from './pages/dashboard/Businesses';
+import UsersPage from './pages/dashboard/Users';
+import SettingsPage from './pages/dashboard/Settings';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import PricingPage from './pages/Pricing';
+import SupportPage from './pages/Support';
+import BusinessDetailsPage from './pages/BusinessDetailsPage';
+import ServicesPage from './pages/Services';
+import PortfoliosPage from './pages/Portfolios';
+import FAQ from './pages/FAQ';
+import PaymentSuccess from './pages/PaymentSuccess';
+import BusinessPermissionsPage from './pages/dashboard/BusinessPermissions';
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Toaster } from "@/components/ui/toaster";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import NotFound from "./pages/NotFound";
-import Businesses from "./pages/Businesses";
-import BusinessDetail from "./pages/BusinessDetail";
-import BusinessSignup from "./pages/BusinessSignup";
-import Services from "./pages/Services";
-import BusinessProfile from "./pages/BusinessProfile";
-import Dashboard from "./pages/Dashboard";
-import Appointments from "./pages/Appointments";
-import Profile from "./pages/Profile";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { AuthProvider } from "./contexts/AuthContext";
-import BusinessesPage from "./pages/dashboard/Businesses";
-import UsersPage from "./pages/dashboard/Users";
-import AppointmentsPage from "./pages/dashboard/Appointments";
-import AdvertisementsPage from "./pages/dashboard/Advertisements";
-import SettingsPage from "./pages/dashboard/Settings";
-import PermissionsPage from "./pages/dashboard/Permissions";
-import ReportsPage from "./pages/dashboard/Reports";
-import NotificationsPage from "./pages/dashboard/Notifications";
-import Portfolios from "./pages/Portfolios";
-import BusinessAdvertisements from "./pages/BusinessAdvertisements";
-import MyCollections from "./pages/MyCollections";
-import Messages from "./pages/Messages";
-import Support from "./pages/Support";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import Search from "./pages/Search";
-import Pricing from "./pages/Pricing";
-import ReportAnalysisPage from "./pages/dashboard/ReportAnalysis";
-import SystemLogsPage from "./pages/dashboard/SystemLogs";
-import DataManagementPage from "./pages/dashboard/DataManagement";
-import Navbar from "./components/Navbar";
-import { AnimatePresence } from "framer-motion";
-
-function App() {
+const App = () => {
   return (
-    <Router>
-      <AuthProvider>
-        <Navbar />
-        <AnimatePresence mode="wait">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/register/business" element={<BusinessSignup />} />
-            <Route path="/businesses" element={<Businesses />} />
-            <Route path="/business/:id" element={<BusinessDetail />} />
-            <Route path="/business/:id/reviews" element={<BusinessDetail />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/portfolios" element={<Portfolios />} />
-            <Route path="/search" element={<Search />} />
-            <Route path="/pricing" element={<Pricing />} />
-            
-            {/* Protected Routes */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/business-profile" element={<BusinessProfile />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/dashboard/businesses" element={<BusinessesPage />} />
-              <Route path="/dashboard/users" element={<UsersPage />} />
-              <Route path="/dashboard/appointments" element={<AppointmentsPage />} />
-              <Route path="/dashboard/advertisements" element={<AdvertisementsPage />} />
-              <Route path="/dashboard/settings" element={<SettingsPage />} />
-              <Route path="/dashboard/permissions" element={<PermissionsPage />} />
-              <Route path="/dashboard/reports" element={<ReportsPage />} />
-              <Route path="/dashboard/notifications" element={<NotificationsPage />} />
-              <Route path="/dashboard/report-analysis" element={<ReportAnalysisPage />} />
-              <Route path="/dashboard/system-logs" element={<SystemLogsPage />} />
-              <Route path="/dashboard/data-management" element={<DataManagementPage />} />
-              <Route path="/appointments" element={<Appointments />} />
-              <Route path="/business-advertisements" element={<BusinessAdvertisements />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/my-collections" element={<MyCollections />} />
-              <Route path="/messages" element={<Messages />} />
-            </Route>
-            
-            {/* Static Pages */}
-            <Route path="/support" element={<Support />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            
-            {/* 404 */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AnimatePresence>
-        <Toaster />
-      </AuthProvider>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="flex flex-col min-h-screen">
+          <Navbar />
+          <main className="flex-grow">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/support" element={<SupportPage />} />
+              <Route path="/businesses/:id" element={<BusinessDetailsPage />} />
+              <Route path="/businesses" element={<BusinessesPage />} />
+              <Route path="/services" element={<ServicesPage />} />
+              <Route path="/portfolios" element={<PortfoliosPage />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+              <Route path="/dashboard/businesses" element={<PrivateRoute><BusinessesPage /></PrivateRoute>} />
+              <Route path="/dashboard/users" element={<PrivateRoute><UsersPage /></PrivateRoute>} />
+              <Route path="/dashboard/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
+              <Route path="/dashboard/business-permissions" element={<PrivateRoute><BusinessPermissionsPage /></PrivateRoute>} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </Router>
+    </AuthProvider>
   );
-}
+};
+
+const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+};
 
 export default App;

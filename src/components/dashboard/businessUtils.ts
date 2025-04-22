@@ -67,3 +67,76 @@ export const getPlanFeatures = (plan: string): string[] => {
 export const isPlanFeatureAvailable = (plan: string, feature: string): boolean => {
   return getPlanFeatures(plan).includes(feature);
 };
+
+// Get permission sets
+export const getPermissionSets = () => {
+  return {
+    "基本權限": [
+      "查看預約",
+      "基本客戶管理",
+      "查看服務項目"
+    ],
+    "員工權限": [
+      "查看預約",
+      "建立預約",
+      "修改預約",
+      "基本客戶管理",
+      "查看服務項目" 
+    ],
+    "管理員權限": [
+      "查看預約",
+      "建立預約",
+      "修改預約",
+      "取消預約",
+      "基本客戶管理",
+      "進階客戶管理",
+      "查看服務項目",
+      "編輯服務項目",
+      "查看業績報表"
+    ],
+    "超級管理員權限": [
+      "查看預約",
+      "建立預約",
+      "修改預約",
+      "取消預約",
+      "基本客戶管理",
+      "進階客戶管理",
+      "查看服務項目",
+      "編輯服務項目",
+      "刪除服務項目",
+      "查看業績報表",
+      "管理員工",
+      "系統設定"
+    ],
+    "自訂權限": []
+  };
+};
+
+// Get all possible permissions
+export const getAllPermissions = () => {
+  return [
+    // 預約相關
+    { id: "view_appointments", name: "查看預約", category: "預約管理" },
+    { id: "create_appointments", name: "建立預約", category: "預約管理" },
+    { id: "edit_appointments", name: "修改預約", category: "預約管理" },
+    { id: "cancel_appointments", name: "取消預約", category: "預約管理" },
+    
+    // 客戶相關
+    { id: "view_customers", name: "基本客戶管理", category: "客戶管理" },
+    { id: "edit_customers", name: "進階客戶管理", category: "客戶管理" },
+    { id: "delete_customers", name: "刪除客戶資料", category: "客戶管理" },
+    
+    // 服務相關
+    { id: "view_services", name: "查看服務項目", category: "服務管理" },
+    { id: "edit_services", name: "編輯服務項目", category: "服務管理" },
+    { id: "delete_services", name: "刪除服務項目", category: "服務管理" },
+    
+    // 報表相關
+    { id: "view_reports", name: "查看業績報表", category: "報表管理" },
+    { id: "export_reports", name: "匯出報表", category: "報表管理" },
+    
+    // 管理相關
+    { id: "manage_staff", name: "管理員工", category: "系統管理" },
+    { id: "system_settings", name: "系統設定", category: "系統管理" },
+  ];
+};

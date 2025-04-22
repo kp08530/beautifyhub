@@ -46,6 +46,7 @@ const Navbar = () => {
             <Link to="/services" className="text-beauty-dark hover:text-beauty-primary transition-colors">服務項目</Link>
             <Link to="/portfolios" className="text-beauty-dark hover:text-beauty-primary transition-colors">作品集</Link>
             <Link to="/pricing" className="text-beauty-dark hover:text-beauty-primary transition-colors">服務價格</Link>
+            <Link to="/faq" className="text-beauty-dark hover:text-beauty-primary transition-colors">常見問答</Link>
             <Link to="/support" className="text-beauty-dark hover:text-beauty-primary transition-colors">商家支援</Link>
           </nav>
           
@@ -125,6 +126,7 @@ const Navbar = () => {
               <Link to="/services" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>服務項目</Link>
               <Link to="/portfolios" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>作品集</Link>
               <Link to="/pricing" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>服務價格</Link>
+              <Link to="/faq" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>常見問答</Link>
               <Link to="/support" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>商家支援</Link>
               {isAuthenticated && (
                 <>

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
 
 interface PaymentSystemProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface PaymentSystemProps {
 
 const PaymentSystem = ({ isOpen, onClose, plan, amount, onSuccess }: PaymentSystemProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [cardNumber, setCardNumber] = useState('');
   const [cardName, setCardName] = useState('');
   const [expiry, setExpiry] = useState('');
@@ -56,11 +58,23 @@ const PaymentSystem = ({ isOpen, onClose, plan, amount, onSuccess }: PaymentSyst
         description: `您已成功訂閱${plan}方案`,
       });
       
+      // 處理成功回調
       if (onSuccess) {
         onSuccess();
       }
       
+      // 關閉對話框
       onClose();
+      
+      // 導航到成功頁面
+      navigate('/payment-success', { 
+        state: { 
+          plan, 
+          amount,
+          transactionId: Math.random().toString(36).substring(2, 15),
+          date: new Date().toISOString()
+        } 
+      });
     }, 2000);
   };
 
@@ -172,7 +186,7 @@ const PaymentSystem = ({ isOpen, onClose, plan, amount, onSuccess }: PaymentSyst
             <Button variant="outline" type="button" onClick={onClose} disabled={isProcessing}>
               取消
             </Button>
-            <Button type="submit" isLoading={isProcessing}>
+            <Button type="submit" disabled={isProcessing}>
               {isProcessing ? '處理中...' : '確認付款'}
             </Button>
           </DialogFooter>
