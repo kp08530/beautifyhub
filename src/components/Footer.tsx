@@ -1,8 +1,10 @@
-
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Footer = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <footer className="bg-beauty-dark text-white pt-16 pb-8">
       <div className="container mx-auto px-4">
@@ -40,12 +42,16 @@ const Footer = () => {
               <li>
                 <Link to="/portfolios" className="text-gray-300 hover:text-white transition-colors">作品集</Link>
               </li>
-              <li>
-                <Link to="/login" className="text-gray-300 hover:text-white transition-colors">登入</Link>
-              </li>
-              <li>
-                <Link to="/register" className="text-gray-300 hover:text-white transition-colors">註冊</Link>
-              </li>
+              {!isAuthenticated && (
+                <>
+                  <li>
+                    <Link to="/login" className="text-gray-300 hover:text-white transition-colors">登入</Link>
+                  </li>
+                  <li>
+                    <Link to="/register" className="text-gray-300 hover:text-white transition-colors">註冊</Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
           

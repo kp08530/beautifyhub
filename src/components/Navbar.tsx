@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, Calendar, Search, Bookmark, MessageCircle } from 'lucide-react';
@@ -9,8 +8,11 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth(); // 獲取使用者資訊
   const navigate = useNavigate();
+
+  // 判斷是否為一般使用者
+  const isGeneralUser = user?.role === "一般使用者";
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -45,9 +47,13 @@ const Navbar = () => {
             <Link to="/businesses" className="text-beauty-dark hover:text-beauty-primary transition-colors">美容店家</Link>
             <Link to="/services" className="text-beauty-dark hover:text-beauty-primary transition-colors">服務項目</Link>
             <Link to="/portfolios" className="text-beauty-dark hover:text-beauty-primary transition-colors">作品集</Link>
-            <Link to="/pricing" className="text-beauty-dark hover:text-beauty-primary transition-colors">服務價格</Link>
+            {isAuthenticated && !isGeneralUser && (
+              <Link to="/pricing" className="text-beauty-dark hover:text-beauty-primary transition-colors">服務價格</Link>
+            )}
             <Link to="/faq" className="text-beauty-dark hover:text-beauty-primary transition-colors">常見問答</Link>
-            <Link to="/support" className="text-beauty-dark hover:text-beauty-primary transition-colors">商家支援</Link>
+            {isAuthenticated && !isGeneralUser && (
+              <Link to="/support" className="text-beauty-dark hover:text-beauty-primary transition-colors">商家支援</Link>
+            )}
           </nav>
           
           {/* User Actions - Desktop */}
@@ -125,9 +131,13 @@ const Navbar = () => {
               <Link to="/businesses" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>美容店家</Link>
               <Link to="/services" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>服務項目</Link>
               <Link to="/portfolios" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>作品集</Link>
-              <Link to="/pricing" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>服務價格</Link>
+              {isAuthenticated && !isGeneralUser && (
+                <Link to="/pricing" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>服務價格</Link>
+              )}
               <Link to="/faq" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>常見問答</Link>
-              <Link to="/support" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>商家支援</Link>
+              {isAuthenticated && !isGeneralUser && (
+                <Link to="/support" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>商家支援</Link>
+              )}
               {isAuthenticated && (
                 <>
                   <Link to="/appointments" className="px-4 py-2 text-beauty-dark hover:bg-gray-50 rounded-md" onClick={toggleMenu}>我的預約</Link>

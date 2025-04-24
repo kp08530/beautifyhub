@@ -1,0 +1,224 @@
+{
+  "projects": [
+    {
+      "id": "20250423152417-1029",
+      "name": "BeautifyHub",
+      "platform": "Lovable",
+      "description": "",
+      "notes": "kp08530.cthr",
+      "todos": [
+        {
+          "id": "20250423152530-5366",
+          "name": "連線資料庫",
+          "description": "預約、帳號、商家等各設定，都要寫進資料庫內，以便永久保存及正確讀取",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "2025042315310355111",
+          "name": "下方導航列修改",
+          "description": "1登入後、下方導航列的登入、註冊按鈕應隱藏\n2",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "2025042315314691440",
+          "name": "上方導航列修改",
+          "description": "如未登入或登入為一般使用者，上方服務價格與商家支援應隱藏",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "20250423153235-1920",
+          "name": "服務價格及品項設定",
+          "description": "確認分級價格與提供項目，並確保後台能辨認。",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "20250423153312-4685",
+          "name": "付款API",
+          "description": "確保商家付款後，可以自動升級",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "2025042315334469889",
+          "name": "提供EMAIL、簡訊服務",
+          "description": "",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "20250423153613-8171",
+          "name": "權限管理應該要可以指定人",
+          "description": "系統後台的權限管理部分，應該要設定預設的權限，以及可以針對指定人開啟或關閉特定權限",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "20250423153700-8393",
+          "name": "報表分析完善",
+          "description": "系統管理員後台報表分析page，新增可以看到經常性用戶與總體用戶數及比例",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "20250423153751-8237",
+          "name": "新增APP",
+          "description": "",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        }
+      ],
+      "bugs": [
+        {
+          "id": "2025042315343427766",
+          "title": "搜尋預約",
+          "description": "於系統管理員後台中，搜尋預約欄位輸入相關後無法搜尋",
+          "found_date": "2025-04-23",
+          "severity": "低",
+          "status": "待修復",
+          "image_path": ""
+        },
+        {
+          "id": "2025042315351669541",
+          "title": "廣告檢視",
+          "description": "系統管理員後台廣告管理的檢視按鈕無反應，應該要可以看到圖片及替代文字",
+          "found_date": "2025-04-23",
+          "severity": "中",
+          "status": "待修復",
+          "image_path": ""
+        }
+      ]
+    },
+    {
+      "id": "20250423155025-1706",
+      "name": "資產管理軟體",
+      "platform": "Lovable",
+      "description": "",
+      "notes": "",
+      "todos": [
+        {
+          "id": "20250423155037-2576",
+          "name": "完善理財工具",
+          "description": "",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "20250423155115-4743",
+          "name": "投資頁面中各單筆投資的投資報酬率分析IRR",
+          "description": "",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "20250423155119-4707",
+          "name": "負債權益比",
+          "description": "",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "20250423155124-3957",
+          "name": "負債所得比",
+          "description": "",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "20250423155136-6975",
+          "name": "情境模擬/預測",
+          "description": "",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "20250423155140-6693",
+          "name": "零基預算",
+          "description": "",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "2025042315514533850",
+          "name": "財務目標達成進度分析與預測。",
+          "description": "",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "2025042315515532790",
+          "name": "投資報酬率與市場指數比較",
+          "description": "",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        },
+        {
+          "id": "2025042410031890466",
+          "name": "123",
+          "description": "123",
+          "due_date": "",
+          "url": "",
+          "status": "待辦"
+        }
+      ],
+      "bugs": [
+        {
+          "id": "2025042410032788808",
+          "title": "123",
+          "description": "",
+          "found_date": "2025-04-24",
+          "severity": "",
+          "status": "待修復",
+          "image_path": "C:/Users/user/Pictures/02.jpg"
+        }
+      ]
+    },
+    {
+      "id": "20250423155258-8568",
+      "name": "KMFood",
+      "platform": "repilot",
+      "description": "",
+      "notes": "",
+      "todos": [],
+      "bugs": []
+    },
+    {
+      "id": "2025042315542643272",
+      "name": "代申請補助",
+      "platform": "",
+      "description": "",
+      "notes": "",
+      "todos": [
+        {
+          "id": "20250423164454-1561",
+          "name": "使用chatgpt產生prd",
+          "description": "kp08530.cthr@gmail.com\n公所電腦",
+          "due_date": "",
+          "url": "",
+          "status": "執行中"
+        }
+      ],
+      "bugs": []
+    }
+  ]
+}

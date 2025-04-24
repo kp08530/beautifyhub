@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import {
@@ -72,6 +71,44 @@ const BusinessPermissionsPage = () => {
   const [availablePermissions, setAvailablePermissions] = useState<{id: string, name: string, category: string}[]>([]);
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [editMode, setEditMode] = useState(false);
+
+  // 新增功能：設定新使用者或付費等級的預設權限
+  const defaultPermissionsByPlan = {
+    基礎版: ["view_appointments", "view_customers"],
+    專業版: ["view_appointments", "view_customers", "create_appointments"],
+    企業版: ["view_appointments", "view_customers", "create_appointments", "manage_staff"],
+  };
+
+  const handleSetDefaultPermissions = (plan: string) => {
+    const defaultPermissions = defaultPermissionsByPlan[plan] || [];
+    setSelectedPermissions(defaultPermissions);
+    toast({
+      title: "預設權限已設置",
+      description: `已為 ${plan} 設置預設權限`,
+    });
+  };
+
+  // 新增功能：針對指定使用者開啟或關閉特定權限
+  const togglePermissionForUser = (userId: string, permissionId: string) => {
+    setStaffMembers((prevStaff) =>
+      prevStaff.map((staff) => {
+        if (staff.id === userId) {
+          const hasPermission = selectedPermissions.includes(permissionId);
+          const updatedPermissions = hasPermission
+            ? selectedPermissions.filter((id) => id !== permissionId)
+            : [...selectedPermissions, permissionId];
+
+          return { ...staff, permissionSet: "自訂權限", permissions: updatedPermissions };
+        }
+        return staff;
+      })
+    );
+
+    toast({
+      title: "權限已更新",
+      description: `使用者 ${userId} 的權限已更新`,
+    });
+  };
 
   // Initialize data
   useEffect(() => {
