@@ -252,7 +252,7 @@ const BusinessPermissionsPage = () => {
                       placeholder="搜尋商家..."
                       className="w-64"
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={(e: { target: { value: any; }; }) => setSearchTerm(e.target.value)}
                     />
                   </div>
                 </div>

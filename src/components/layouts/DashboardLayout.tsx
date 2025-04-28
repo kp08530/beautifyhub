@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import {
   Sidebar,
@@ -257,26 +256,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-          
-          <SidebarGroup>
-            <SidebarGroupLabel>系統</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={false}>
-                    <Link to="/business-settings">
-                      <Settings />
-                      <span>設定</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
         </>
       );
     } else {
-      // Admin role
       return (
         <>
           <SidebarGroup>

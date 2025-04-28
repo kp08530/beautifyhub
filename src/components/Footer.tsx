@@ -45,24 +45,26 @@ const Footer = () => {
               {!isAuthenticated && (
                 <>
                   <li>
-                    <Link to="/login" className="text-gray-300 hover:text-white transition-colors">登入</Link>
+                    <Link to="/login" className="text-gray-300 hover:text-white transition-colors">
+                      登入
+                    </Link>
                   </li>
                   <li>
-                    <Link to="/register" className="text-gray-300 hover:text-white transition-colors">註冊</Link>
+                    <Link to="/register" className="text-gray-300 hover:text-white transition-colors">
+                      註冊
+                    </Link>
                   </li>
                 </>
               )}
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-bold mb-4">商家服務</h3>
-            <ul className="space-y-2">
               <li>
-                <Link to="/business-signup" className="text-gray-300 hover:text-white transition-colors">商家註冊</Link>
+                <Link to="/faq" className="text-gray-300 hover:text-white transition-colors">
+                  常見問題
+                </Link>
               </li>
               <li>
-                <Link to="/business-profile" className="text-gray-300 hover:text-white transition-colors">商家後台</Link>
+                <Link to="/business-profile" className="text-gray-300 hover:text-white transition-colors">
+                  商家後台
+                </Link>
               </li>
               <li>
                 <Link to="/pricing" className="text-gray-300 hover:text-white transition-colors">服務價格</Link>
