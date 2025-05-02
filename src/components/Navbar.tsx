@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, Calendar, Search, Bookmark, MessageCircle } from 'lucide-react';
@@ -12,7 +13,7 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   // 判斷是否為一般使用者
-  const isGeneralUser = user?.role === "一般使用者";
+  const isGeneralUser = user?.role === "user";
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
