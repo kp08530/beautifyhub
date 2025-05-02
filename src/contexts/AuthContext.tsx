@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, NavigateFunction, Location } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 // Define user types
@@ -57,12 +57,16 @@ const mockUsers: { [key: string]: User & { password: string } } = {
 // Create context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+interface AuthProviderProps {
+  children: ReactNode;
+  navigate: NavigateFunction;
+  location: Location;
+}
+
+export const AuthProvider = ({ children, navigate, location }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
-  const navigate = useNavigate();
-  const location = useLocation();
   
   // Check for saved user on mount
   useEffect(() => {

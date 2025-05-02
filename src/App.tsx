@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { default as HomePage } from './pages/Index';
@@ -20,37 +20,41 @@ import FAQ from './pages/FAQ';
 import PaymentSuccess from './pages/PaymentSuccess';
 import BusinessPermissionsPage from './pages/dashboard/BusinessPermissions';
 import AppointmentsPage from './pages/dashboard/Appointments';
+import { useAuth } from './contexts/AuthContext';
 
-const App = () => {
+// This component wraps the application with the AuthProvider
+// and provides the necessary router hooks to the AuthProvider
+const AppWithAuth = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   return (
-    <AuthProvider>
-      <Router>
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          <main className="flex-grow">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/pricing" element={<PricingPage />} />
-              <Route path="/support" element={<SupportPage />} />
-              <Route path="/businesses/:id" element={<BusinessDetailsPage />} />
-              <Route path="/businesses" element={<BusinessesPage />} />
-              <Route path="/services" element={<ServicesPage />} />
-              <Route path="/portfolios" element={<PortfoliosPage />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
-              <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-              <Route path="/dashboard/businesses" element={<PrivateRoute><BusinessesPage /></PrivateRoute>} />
-              <Route path="/dashboard/users" element={<PrivateRoute><UsersPage /></PrivateRoute>} />
-              <Route path="/dashboard/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
-              <Route path="/dashboard/business-permissions" element={<PrivateRoute><BusinessPermissionsPage /></PrivateRoute>} />
-              <Route path="/dashboard/appointments" element={<PrivateRoute><AppointmentsPage /></PrivateRoute>} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </Router>
+    <AuthProvider navigate={navigate} location={location}>
+      <div className="flex flex-col min-h-screen">
+        <Navbar />
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/support" element={<SupportPage />} />
+            <Route path="/businesses/:id" element={<BusinessDetailsPage />} />
+            <Route path="/businesses" element={<BusinessesPage />} />
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/portfolios" element={<PortfoliosPage />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            <Route path="/dashboard/businesses" element={<PrivateRoute><BusinessesPage /></PrivateRoute>} />
+            <Route path="/dashboard/users" element={<PrivateRoute><UsersPage /></PrivateRoute>} />
+            <Route path="/dashboard/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
+            <Route path="/dashboard/business-permissions" element={<PrivateRoute><BusinessPermissionsPage /></PrivateRoute>} />
+            <Route path="/dashboard/appointments" element={<PrivateRoute><AppointmentsPage /></PrivateRoute>} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </AuthProvider>
   );
 };
@@ -58,6 +62,15 @@ const App = () => {
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+};
+
+// Main app component that sets up the Router
+const App = () => {
+  return (
+    <Router>
+      <AppWithAuth />
+    </Router>
+  );
 };
 
 export default App;
